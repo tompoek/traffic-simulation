@@ -4,97 +4,6 @@
 
 #include "utils.h"
 
-void updateNumCars(Lane &lane) {
-    int num_cars = 0;
-    while (lane.Cars[num_cars].Speed != 0) {
-        num_cars++;
-    }
-    lane.numCars = num_cars;
-}
-
-// Function to sort the cars in a lane based on their position
-void sortCarsForPrinting(Lane &lane) {
-    // Sort the cars based on their position
-    lane.SortedCars = lane.Cars;
-    std::sort(lane.SortedCars, lane.SortedCars + lane.numCars, [](const Car& a, const Car& b) {
-        return a.Position < b.Position;
-    });
-}
-
-void printCarsInLane(FILE* &fid, Lane &lane) {
-    // Sort cars in the lane first
-    sortCarsForPrinting(lane);
-    // Initialize lane occupancy with 0 (no car)
-    int* occupancy = new int[LANE_LENGTH]();
-    // Fill the lane's occupancy based on car positions and speeds
-    for (int carIdx=0; carIdx < lane.numCars; ++carIdx) {
-        occupancy[lane.SortedCars[carIdx].Position] = lane.SortedCars[carIdx].TargetSpeed;
-    }
-    // Print the lane occupancy
-    for (int i = 0; i < LANE_LENGTH; i++) {
-        fprintf(fid, "%d", occupancy[i]);
-        if (i < LANE_LENGTH - 1) {
-            fprintf(fid, ",");
-        }
-    }
-    // Free the allocated memory for occupancy
-    delete[] occupancy;
-}
-
-void printStep(FILE* &fid, Lane* lanes) {
-    for (int lane_index=0; lane_index < NUM_LANES; ++lane_index) {
-        if (lane_index>0) {fprintf(fid, ",");}
-        printCarsInLane(fid, lanes[lane_index]);
-    }
-    fprintf(fid, "\n");
-}
-
-void execLaneChange(Lane &fromLane, Lane &toLane, int idxCarToMove) {
-    Car &carToMove = fromLane.Cars[idxCarToMove]; // alias the car to move
-    // find which index to insert the car, based on position// The car to be moved
-    int insertIndex = toLane.numCars;
-    for (int i=toLane.numCars-1; i>=0; --i) {
-        if (toLane.Cars[i].Position <= carToMove.Position) {
-            insertIndex = i;
-            break;
-        }
-    }
-    // increase the size of the target lane's Cars array to accommodate the new car
-    for (int i = toLane.numCars; i > insertIndex; --i) {
-        toLane.Cars[i] = toLane.Cars[i - 1];
-    }
-    // insert the car to the index found
-    toLane.Cars[insertIndex] = carToMove;
-    // assuming no lead car, drive at target speed, TBD: introduce acceleration model
-    toLane.Cars[insertIndex].Speed = toLane.Cars[insertIndex].TargetSpeed;
-    toLane.numCars++;
-    // shift the moved car to the rightmost side
-    for (int i=idxCarToMove; i<fromLane.numCars; ++i) {
-        fromLane.Cars[i] = fromLane.Cars[i+1];
-    }
-    // delete the moved car from previous lane
-    fromLane.Cars[fromLane.numCars - 1] = {0};
-    fromLane.numCars--;
-}
-
-bool tryLaneChange(Lane &lane, Lane &targetLane, int &carIdx) {
-    bool carHasChangedLane = false;
-    bool targetLaneIsSafe = true;
-    for (int ii=0; ii<targetLane.numCars; ++ii) {
-        int distToCarii = targetLane.Cars[ii].Position - lane.Cars[carIdx].Position;
-        if (distToCarii >=0 && distToCarii < SAFE_DISTANCE) {
-            targetLaneIsSafe = false;
-            break;
-        }
-    }
-    if (targetLaneIsSafe) {
-        // execute lane change
-        execLaneChange(lane, targetLane, carIdx);
-        carHasChangedLane = true;
-    }
-    return carHasChangedLane;
-}
-
 int main(int argc, char** argv) {
     // Measure runtime
     std::chrono::high_resolution_clock::time_point start_clock; // used by all timers
@@ -142,9 +51,11 @@ int main(int argc, char** argv) {
                         // detect cars in the target lane
                         if (hasNextLane) {
                             carHasChangedLane = tryLaneChange(lane, nextLane, i);
+                            if (carHasChangedLane) {printf("Car %d has moved from Lane %d to its Right Lane\n", i, laneIdx);}
                         }
                         if (!carHasChangedLane && hasPreviousLane) {
                             carHasChangedLane = tryLaneChange(lane, previousLane, i);
+                            if (carHasChangedLane) {printf("Car %d has moved from Lane %d to its Left Lane\n", i, laneIdx);}
                         }
                     }
                 }

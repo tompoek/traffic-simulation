@@ -32,4 +32,16 @@ void sortCars(Lane &lane);
 
 void initializeTraffic(Lane* &lanes);
 
+void updateNumCars(Lane &lane);
+
+void sortCarsForPrinting(Lane &lane);
+
+void printCarsInLane(FILE* &fid, Lane &lane);
+
+void printStep(FILE* &fid, Lane* lanes);
+
+void execLaneChange(Lane &fromLane, Lane &toLane, int idxCarToMove);
+
+bool tryLaneChange(Lane &lane, Lane &targetLane, int &carIdx);
+
 #endif
