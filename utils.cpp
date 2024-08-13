@@ -221,17 +221,14 @@ void printStepSpaceOccupancy(FILE* &fid, Lane* lanes) {
     fprintf(fid, "\n");
 }
 
-void execLaneChange(Lane &fromLane, Lane &toLane, int idxCarToMove) {
+void execLaneChange(Lane &fromLane, Lane &toLane, int &idxCarToMove) {
     Car &carToMove = fromLane.Cars[idxCarToMove]; // alias the car to move
     // find which index to insert the car, based on position// The car to be moved
-    int insertIndex = toLane.numCars;
+    int insertIndex = 0;
     for (int i=toLane.numCars-1; i>=0; --i) {
         if (toLane.Cars[i].Position < carToMove.Position) { // == case should not happen, because lane must be safe!
             insertIndex = i;
             break;
-        }
-        if (i==0) {
-            insertIndex = 0;
         }
     }
     // increase the size of the target lane's Cars array to accommodate the new car
@@ -252,18 +249,19 @@ void execLaneChange(Lane &fromLane, Lane &toLane, int idxCarToMove) {
     fromLane.numCars--;
 }
 
-bool tryLaneChange(Lane &lane, Lane &targetLane, int &carIdx) {
+bool tryLaneChange(Lane &lane, Lane &targetLane, int &carIdx, int &laneIdx, int &targetLaneIdx) {
     bool carHasChangedLane = false;
     bool targetLaneIsSafe = true;
     for (int ii=0; ii<targetLane.numCars; ++ii) {
-        int distToCarii = targetLane.Cars[ii].Position - lane.Cars[carIdx].Position;
-        if (distToCarii >=0 && distToCarii < SAFE_DISTANCE) {
+        int distToCarii = ((targetLane.Cars[ii].Position - lane.Cars[carIdx].Position) % LANE_LENGTH + LANE_LENGTH) % LANE_LENGTH;
+        if (distToCarii < SAFE_DISTANCE) {
             targetLaneIsSafe = false;
             break;
         }
     }
     if (targetLaneIsSafe) {
         // execute lane change
+        printf("Car %d changes from Lane %d to %d\n", carIdx, laneIdx, targetLaneIdx);
         execLaneChange(lane, targetLane, carIdx);
         carHasChangedLane = true;
     }

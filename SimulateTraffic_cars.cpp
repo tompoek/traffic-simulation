@@ -26,16 +26,18 @@ int main(int argc, char** argv) {
     for (int step=0; step<NUM_STEPS; ++step) {
         printf("@ Step %d\n", step);
         // Try Lane change
-        for (int laneIdx = 0; laneIdx < NUM_LANES; ++laneIdx) {
+        for (int laneIdx=0; laneIdx < NUM_LANES; ++laneIdx) {
             start_clock = std::chrono::high_resolution_clock::now();
             Lane &lane = lanes[laneIdx];
             bool hasLeadCar = false;
             bool hasNextLane = true;
-            if (laneIdx == NUM_LANES - 1) {hasNextLane = false;}
-            Lane &nextLane = lanes[(laneIdx + 1) % NUM_LANES];
+            int nextLaneIdx = laneIdx + 1;
+            if (laneIdx == NUM_LANES - 1) {hasNextLane = false; nextLaneIdx = 0;}
+            Lane &nextLane = lanes[nextLaneIdx];
             bool hasPreviousLane = true;
-            if (laneIdx == 0) {hasPreviousLane = false;}
-            Lane &previousLane = lanes[((laneIdx - 1) % NUM_LANES + NUM_LANES) % NUM_LANES];
+            int previousLaneIdx = laneIdx - 1;
+            if (laneIdx == 0) {hasPreviousLane = false; previousLaneIdx = NUM_LANES - 1;}
+            Lane &previousLane = lanes[previousLaneIdx];
             if (lane.numCars > 1) {
                 for (int i = lane.numCars-2; i >= 0; --i) {
                     hasLeadCar = false;
@@ -52,12 +54,10 @@ int main(int argc, char** argv) {
                         bool carHasChangedLane = false;
                         // detect cars in the target lane
                         if (hasNextLane) {
-                            carHasChangedLane = tryLaneChange(lane, nextLane, i);
-                            if (carHasChangedLane) {printf("Car %d has moved from Lane %d Pos %d to its Right Lane\n", lane.Cars[i].carIdx, laneIdx, lane.Cars[i].Position);}
+                            carHasChangedLane = tryLaneChange(lane, nextLane, i, laneIdx, nextLaneIdx);
                         }
                         if (!carHasChangedLane && hasPreviousLane) {
-                            carHasChangedLane = tryLaneChange(lane, previousLane, i);
-                            if (carHasChangedLane) {printf("Car %d has moved from Lane %d Pos %d to its Left Lane\n", lane.Cars[i].carIdx, laneIdx, lane.Cars[i].Position);}
+                            carHasChangedLane = tryLaneChange(lane, previousLane, i, laneIdx, previousLaneIdx);
                         }
                     }
                 }

@@ -43,8 +43,8 @@ void printLaneOccupancy(FILE* &fid, Lane &lane);
 
 void printStepSpaceOccupancy(FILE* &fid, Lane* lanes);
 
-void execLaneChange(Lane &fromLane, Lane &toLane, int idxCarToMove);
+void execLaneChange(Lane &fromLane, Lane &toLane, int &idxCarToMove);
 
-bool tryLaneChange(Lane &lane, Lane &targetLane, int &carIdx);
+bool tryLaneChange(Lane &lane, Lane &targetLane, int &carIdx, int &laneIdx, int &targetLaneIdx);
 
 #endif
