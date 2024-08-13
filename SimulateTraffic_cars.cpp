@@ -53,11 +53,11 @@ int main(int argc, char** argv) {
                         // detect cars in the target lane
                         if (hasNextLane) {
                             carHasChangedLane = tryLaneChange(lane, nextLane, i);
-                            if (carHasChangedLane) {printf("Car %d has moved from Lane %d to its Right Lane\n", i, laneIdx);}
+                            if (carHasChangedLane) {printf("Car %d has moved from Lane %d to its Right Lane\n", lane.Cars[i].carIdx, laneIdx);}
                         }
                         if (!carHasChangedLane && hasPreviousLane) {
                             carHasChangedLane = tryLaneChange(lane, previousLane, i);
-                            if (carHasChangedLane) {printf("Car %d has moved from Lane %d to its Left Lane\n", i, laneIdx);}
+                            if (carHasChangedLane) {printf("Car %d has moved from Lane %d to its Left Lane\n", lane.Cars[i].carIdx, laneIdx);}
                         }
                     }
                 }
