@@ -1,6 +1,6 @@
 #include "utils.h"
 
-void printHeader(FILE* &fid) {
+void printHeaderSpaceOccupancy(FILE* &fid) {
     for (int i=0; i<NUM_LANES; ++i) {
         if (i>0) {fprintf(fid,",");}
         for (int j=0; j<LANE_LENGTH; ++j) {
@@ -36,6 +36,7 @@ void initializeTraffic(Lane* &lanes) {
             pos_idx = indices[j]%LANE_LENGTH;
             // fill a car according to lane_idx and pos_idx, assigning random speed up to SPEED_LIMIT
             lanes[lane_idx].numCars++;
+            lanes[lane_idx].Cars[lanes[lane_idx].numCars-1].carIdx = j;
             lanes[lane_idx].Cars[lanes[lane_idx].numCars-1].Position = pos_idx;
             lanes[lane_idx].Cars[lanes[lane_idx].numCars-1].Speed = (rand()%SPEED_LIMIT) + 1;
             lanes[lane_idx].Cars[lanes[lane_idx].numCars-1].TargetSpeed = lanes[lane_idx].Cars[lanes[lane_idx].numCars-1].Speed;
@@ -45,6 +46,12 @@ void initializeTraffic(Lane* &lanes) {
         }
     } else { // Fixed>> curated initial conditions:
         lanes[0].numCars = 6;
+        lanes[0].Cars[0].carIdx = 0;
+        lanes[0].Cars[1].carIdx = 1;
+        lanes[0].Cars[2].carIdx = 2;
+        lanes[0].Cars[3].carIdx = 3;
+        lanes[0].Cars[4].carIdx = 4;
+        lanes[0].Cars[5].carIdx = 5;
         lanes[0].Cars[0].Position = 0; // Car A
         lanes[0].Cars[0].Speed = 3;
         lanes[0].Cars[0].TargetSpeed = lanes[0].Cars[0].Speed;
@@ -66,6 +73,12 @@ void initializeTraffic(Lane* &lanes) {
         // sortCars(lanes[0]);
         if (NUM_LANES > 1) {
             lanes[1].numCars = 6;
+            lanes[1].Cars[0].carIdx = 6;
+            lanes[1].Cars[1].carIdx = 7;
+            lanes[1].Cars[2].carIdx = 8;
+            lanes[1].Cars[3].carIdx = 9;
+            lanes[1].Cars[4].carIdx = 10;
+            lanes[1].Cars[5].carIdx = 11;
             lanes[1].Cars[0].Position = 10;
             lanes[1].Cars[0].Speed = 4;
             lanes[1].Cars[0].TargetSpeed = lanes[1].Cars[0].Speed;
@@ -87,6 +100,12 @@ void initializeTraffic(Lane* &lanes) {
             // sortCars(lanes[1]);
             if (NUM_LANES > 2) {
                 lanes[2].numCars = 6;
+                lanes[2].Cars[0].carIdx = 12;
+                lanes[2].Cars[1].carIdx = 13;
+                lanes[2].Cars[2].carIdx = 14;
+                lanes[2].Cars[3].carIdx = 15;
+                lanes[2].Cars[4].carIdx = 16;
+                lanes[2].Cars[5].carIdx = 17;
                 lanes[2].Cars[0].Position = 32;
                 lanes[2].Cars[0].Speed = 4;
                 lanes[2].Cars[0].TargetSpeed = lanes[2].Cars[0].Speed;
@@ -108,6 +127,12 @@ void initializeTraffic(Lane* &lanes) {
                 // sortCars(lanes[2]);
                 if (NUM_LANES > 3) {
                     lanes[3].numCars = 6;
+                    lanes[3].Cars[0].carIdx = 18;
+                    lanes[3].Cars[1].carIdx = 19;
+                    lanes[3].Cars[2].carIdx = 20;
+                    lanes[3].Cars[3].carIdx = 21;
+                    lanes[3].Cars[4].carIdx = 22;
+                    lanes[3].Cars[5].carIdx = 23;
                     lanes[3].Cars[0].Position = 36;
                     lanes[3].Cars[0].Speed = 3;
                     lanes[3].Cars[0].TargetSpeed = lanes[3].Cars[0].Speed;
@@ -150,7 +175,25 @@ void sortCarsForPrinting(Lane &lane) {
     });
 }
 
-void printCarsInLane(FILE* &fid, Lane &lane) {
+void printStepCars(FILE* &fid, Lane* &lanes) {
+    for (int carIdx = 0; carIdx < NUM_CARS; ++carIdx) {
+        if (carIdx>0) fprintf(fid, ",");
+        bool carFound = false;
+        for (int laneIdx = 0; laneIdx < NUM_LANES; ++laneIdx) {
+            for (int j=0; j<lanes[laneIdx].numCars; ++j) {
+                if (carIdx == lanes[laneIdx].Cars[j].carIdx) {
+                    fprintf(fid, "%d,%d", laneIdx, lanes[laneIdx].Cars[j].Position);
+                    carFound = true;
+                    break;
+                }
+            }
+            if (carFound) {break;}
+        }
+    }
+    fprintf(fid, "\n");
+}
+
+void printLaneOccupancy(FILE* &fid, Lane &lane) {
     // Sort cars in the lane first
     sortCarsForPrinting(lane);
     // Initialize lane occupancy with 0 (no car)
@@ -170,10 +213,10 @@ void printCarsInLane(FILE* &fid, Lane &lane) {
     delete[] occupancy;
 }
 
-void printStep(FILE* &fid, Lane* lanes) {
+void printStepSpaceOccupancy(FILE* &fid, Lane* lanes) {
     for (int lane_index=0; lane_index < NUM_LANES; ++lane_index) {
         if (lane_index>0) {fprintf(fid, ",");}
-        printCarsInLane(fid, lanes[lane_index]);
+        printLaneOccupancy(fid, lanes[lane_index]);
     }
     fprintf(fid, "\n");
 }

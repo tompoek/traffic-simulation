@@ -14,6 +14,7 @@ const int SPEED_LIMIT = 4;
 const int NUM_STEPS = 100000;
 
 struct Car {
+    int carIdx;
     int Position;
     int TargetPosition;
     int Speed;
@@ -26,7 +27,7 @@ struct Lane {
     Car* SortedCars;
 };
 
-void printHeader(FILE* &fid);
+void printHeaderSpaceOccupancy(FILE* &fid);
 
 void sortCars(Lane &lane);
 
@@ -36,9 +37,11 @@ void updateNumCars(Lane &lane);
 
 void sortCarsForPrinting(Lane &lane);
 
-void printCarsInLane(FILE* &fid, Lane &lane);
+void printStepCars(FILE* &fid, Lane* &lanes);
 
-void printStep(FILE* &fid, Lane* lanes);
+void printLaneOccupancy(FILE* &fid, Lane &lane);
+
+void printStepSpaceOccupancy(FILE* &fid, Lane* lanes);
 
 void execLaneChange(Lane &fromLane, Lane &toLane, int idxCarToMove);
 

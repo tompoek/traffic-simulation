@@ -12,13 +12,15 @@ int main(int argc, char** argv) {
 
     // Prepare for printing to file
     FILE* fid = argc > 1 ? fopen(argv[1], "w") : stdout;
-    // printHeader(fid);
+    // printHeaderSpaceOccupancy(fid);
 
     // Initialization
     Lane* lanes = static_cast<Lane*>(malloc(sizeof(Lane) * NUM_LANES));
     initializeTraffic(lanes);
 
-    printStep(fid, lanes);
+    //TODO: printStepCars
+    printStepCars(fid, lanes);
+    // printStepSpaceOccupancy(fid, lanes);
 
     // Simulation loop
     for (int step=0; step<NUM_STEPS; ++step) {
@@ -89,7 +91,8 @@ int main(int argc, char** argv) {
             microsecs_driveForward += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start_clock);
         }
 
-        printStep(fid, lanes);
+        printStepCars(fid, lanes);
+        // printStepSpaceOccupancy(fid, lanes);
     }
     printf("Num Steps: %d, Num Lanes: %d\n", NUM_STEPS, NUM_LANES);
     printf("Cumulative microseconds of tryLaneChange = %ld us\n", microsecs_tryLaneChange.count());

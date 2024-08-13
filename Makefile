@@ -12,7 +12,7 @@ SRCS = SimulateTraffic_cars.cpp utils.cpp
 OBJS = $(SRCS:.cpp=.o)
 
 # Output results files
-RESULTS = trafficSpaceOccupancy.csv
+RESULTS = trafficSpaceOccupancy.csv trafficCars.csv
 
 # Output profile
 PROF = gmon.out profile.txt
