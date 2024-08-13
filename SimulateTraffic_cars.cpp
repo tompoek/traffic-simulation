@@ -53,11 +53,11 @@ int main(int argc, char** argv) {
                         // detect cars in the target lane
                         if (hasNextLane) {
                             carHasChangedLane = tryLaneChange(lane, nextLane, i);
-                            if (carHasChangedLane) {printf("Car %d has moved from Lane %d to its Right Lane\n", lane.Cars[i].carIdx, laneIdx);}
+                            if (carHasChangedLane) {printf("Car %d has moved from Lane %d Pos %d to its Right Lane\n", lane.Cars[i].carIdx, laneIdx, lane.Cars[i].Position);}
                         }
                         if (!carHasChangedLane && hasPreviousLane) {
                             carHasChangedLane = tryLaneChange(lane, previousLane, i);
-                            if (carHasChangedLane) {printf("Car %d has moved from Lane %d to its Left Lane\n", lane.Cars[i].carIdx, laneIdx);}
+                            if (carHasChangedLane) {printf("Car %d has moved from Lane %d Pos %d to its Left Lane\n", lane.Cars[i].carIdx, laneIdx, lane.Cars[i].Position);}
                         }
                     }
                 }
@@ -76,10 +76,12 @@ int main(int argc, char** argv) {
                 lane.Cars[i].TargetPosition = lane.Cars[i].Position + lane.Cars[i].Speed;
             }
             for (int i = numCars - 1; i > 0; i--) {
+                int num_collisions = 0;
                 for (int j = i - 1; j >= 0; j--) {
                     if (lane.Cars[j].TargetPosition >= lane.Cars[i].TargetPosition) { // ASSUMPTION: speeds never exceeds LANE_LENGTH
                         // Collision detected, move car j as close as possible without colliding
-                        lane.Cars[j].TargetPosition = lane.Cars[i].TargetPosition - 1;
+                        num_collisions++;
+                        lane.Cars[j].TargetPosition = lane.Cars[i].TargetPosition - num_collisions;
                         lane.Cars[j].Speed = lane.Cars[i].Speed; // then adjust car j's speed to lead car i's speed
                     }
                 }

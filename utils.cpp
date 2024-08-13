@@ -42,7 +42,7 @@ void initializeTraffic(Lane* &lanes) {
             lanes[lane_idx].Cars[lanes[lane_idx].numCars-1].TargetSpeed = lanes[lane_idx].Cars[lanes[lane_idx].numCars-1].Speed;
         }
         for (int lane_index = 0; lane_index < NUM_LANES; ++lane_index) {
-            sortCars(lanes[lane_index]);
+            sortCars(lanes[lane_index]); // sort cars for physical lead-follow relations
         }
     } else { // Fixed>> curated initial conditions:
         lanes[0].numCars = 6;
@@ -226,9 +226,12 @@ void execLaneChange(Lane &fromLane, Lane &toLane, int idxCarToMove) {
     // find which index to insert the car, based on position// The car to be moved
     int insertIndex = toLane.numCars;
     for (int i=toLane.numCars-1; i>=0; --i) {
-        if (toLane.Cars[i].Position <= carToMove.Position) {
+        if (toLane.Cars[i].Position < carToMove.Position) { // == case should not happen, because lane must be safe!
             insertIndex = i;
             break;
+        }
+        if (i==0) {
+            insertIndex = 0;
         }
     }
     // increase the size of the target lane's Cars array to accommodate the new car
