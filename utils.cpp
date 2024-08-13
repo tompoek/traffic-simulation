@@ -23,14 +23,13 @@ void initializeTraffic(Lane* &lanes) {
         lanes[lane_index].numCars = 0;
         lanes[lane_index].Cars = static_cast<Car*>(malloc(sizeof(Car) * LANE_LENGTH));
     }
-    int randomSeed = 47; // 0 represents fixed scenario
-    if (randomSeed > 0) { // Random>> Distribute NUM_CARS cars randomly across all lanes
+    if (RANDOM_SEED > 0) { // Random>> Distribute NUM_CARS cars randomly across all lanes
         int lane_idx, pos_idx;
         std::vector<int> indices(NUM_LANES*LANE_LENGTH);
         std::iota(indices.begin(), indices.end(), 0); // Fill with 0, 1, ..., N-1
         // std::random_device rd;
         // std::mt19937 gen(rd());
-        std::mt19937 gen(randomSeed); // random seed
+        std::mt19937 gen(RANDOM_SEED); // random seed
         std::shuffle(indices.begin(), indices.end(), gen);
         for (int j=0; j<NUM_CARS; ++j) {
             lane_idx = indices[j]/LANE_LENGTH;

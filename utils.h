@@ -7,8 +7,8 @@
 
 const int LANE_LENGTH = 50;
 const int NUM_LANES = 4;
-const int NUM_CARS = 40; // for randomly distributed cars
-// const int NUM_CARS = 6 * NUM_LANES; // for fixed scenario
+constexpr int RANDOM_SEED = 47; // = 0 for fixed scenario
+constexpr int NUM_CARS = (RANDOM_SEED > 0) ? 40 : (6 * NUM_LANES); // specify #cars to randomly distribute, or use fixed scenario
 const int SAFE_DISTANCE = 2;
 const int SPEED_LIMIT = 4;
 const int NUM_STEPS = 100000;
