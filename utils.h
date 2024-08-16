@@ -13,7 +13,7 @@ const int SAFE_DISTANCE = 2;
 const int SPEED_LIMIT = 4;
 const int NUM_STEPS = 100000;
 
-const int TEST_VERSION = 2; // implemented: V2, V3
+const int TEST_VERSION = 3; // implemented: V2, V3
 
 struct CarV2 {
     int carIdx;
@@ -33,15 +33,12 @@ struct CarV3 {
 struct LaneV2 {
     int numCars;
     CarV2* Cars;
-    CarV2* SortedCars;
 };
 
 struct LaneV3 {
     int numCars;
     int* CarIndices;
 };
-
-void printHeaderSpaceOccupancy(FILE* &fid);
 
 void sortCarsForLaneV2(LaneV2 &lane);
 
@@ -53,15 +50,9 @@ void initializeTrafficV3(CarV3* &cars, LaneV3* &lanes);
 
 void updateNumCars(LaneV2 &lane);
 
-void sortCarsV2ForPrinting(LaneV2 &lane);
-
 void printStepCarsV2(FILE* &fid, LaneV2* &lanes);
 
 void printStepCarsV3(FILE* &fid, CarV3* &cars, LaneV3* &lanes);
-
-void printLaneOccupancy(FILE* &fid, LaneV2 &lane);
-
-void printStepSpaceOccupancy(FILE* &fid, LaneV2* lanes);
 
 void execLaneChangeV2(LaneV2 &fromLane, LaneV2 &toLane, int &idxCarToMove);
 

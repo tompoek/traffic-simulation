@@ -1,16 +1,5 @@
 #include "utils.h"
 
-void printHeaderSpaceOccupancy(FILE* &fid) {
-    for (int i=0; i<NUM_LANES; ++i) {
-        if (i>0) {fprintf(fid,",");}
-        for (int j=0; j<LANE_LENGTH; ++j) {
-            if (j>0) {fprintf(fid,",");}
-            fprintf(fid,"Lane_%d_Space_%d", i, j);
-        }
-    }
-    fprintf(fid,"\n");
-}
-
 void sortCarsForLaneV2(LaneV2 &lane) {
     // Sort the cars based on their position
     std::sort(lane.Cars, lane.Cars + lane.numCars, [](const CarV2& a, const CarV2& b) {
@@ -314,15 +303,6 @@ void updateNumCars(LaneV2 &lane) {
     lane.numCars = num_cars;
 }
 
-// Function to sort the cars in a lane based on their position
-void sortCarsV2ForPrinting(LaneV2 &lane) {
-    // Sort the cars based on their position
-    lane.SortedCars = lane.Cars;
-    std::sort(lane.SortedCars, lane.SortedCars + lane.numCars, [](const CarV2& a, const CarV2& b) {
-        return a.Position < b.Position;
-    });
-}
-
 void printStepCarsV2(FILE* &fid, LaneV2* &lanes) {
     for (int carIdx = 0; carIdx < NUM_CARS; ++carIdx) {
         if (carIdx>0) fprintf(fid, ",");
@@ -355,34 +335,6 @@ void printStepCarsV3(FILE* &fid, CarV3* &cars, LaneV3* &lanes) {
             }
             if (carFound) {break;}
         }
-    }
-    fprintf(fid, "\n");
-}
-
-void printLaneOccupancy(FILE* &fid, LaneV2 &lane) {
-    // Sort cars in the lane first
-    sortCarsV2ForPrinting(lane);
-    // Initialize lane occupancy with 0 (no car)
-    int* occupancy = new int[LANE_LENGTH]();
-    // Fill the lane's occupancy based on car positions and speeds
-    for (int carIdx=0; carIdx < lane.numCars; ++carIdx) {
-        occupancy[lane.SortedCars[carIdx].Position] = lane.SortedCars[carIdx].TargetSpeed;
-    }
-    // Print the lane occupancy
-    for (int i = 0; i < LANE_LENGTH; i++) {
-        fprintf(fid, "%d", occupancy[i]);
-        if (i < LANE_LENGTH - 1) {
-            fprintf(fid, ",");
-        }
-    }
-    // Free the allocated memory for occupancy
-    delete[] occupancy;
-}
-
-void printStepSpaceOccupancy(FILE* &fid, LaneV2* lanes) {
-    for (int lane_index=0; lane_index < NUM_LANES; ++lane_index) {
-        if (lane_index>0) {fprintf(fid, ",");}
-        printLaneOccupancy(fid, lanes[lane_index]);
     }
     fprintf(fid, "\n");
 }

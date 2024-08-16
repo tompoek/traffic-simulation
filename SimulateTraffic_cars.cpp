@@ -12,7 +12,6 @@ int main(int argc, char** argv) {
 
     // Prepare for printing to file
     FILE* fid = argc > 1 ? fopen(argv[1], "w") : stdout;
-    // printHeaderSpaceOccupancy(fid);
 
     // Memory allocation
     LaneV2* lanesV2 = static_cast<LaneV2*>(malloc(sizeof(LaneV2) * NUM_LANES));
@@ -27,7 +26,6 @@ int main(int argc, char** argv) {
         initializeTrafficV3(carsV3, lanesV3);
         printStepCarsV3(fid, carsV3, lanesV3);
     }
-    // printStepSpaceOccupancy(fid, lanesV2);
 
     // Simulation loop
     for (int step=0; step<NUM_STEPS; ++step) {
@@ -59,7 +57,6 @@ int main(int argc, char** argv) {
         } else {
             printStepCarsV3(fid, carsV3, lanesV3);
         }
-        // printStepSpaceOccupancy(fid, lanesV2);
     }
     printf("Num Steps: %d, Num Lanes: %d\n", NUM_STEPS, NUM_LANES);
     printf("Cumulative microseconds of allCarsTryLaneChange = %ld us\n", microsecs_allCarsTryLaneChange.count());
