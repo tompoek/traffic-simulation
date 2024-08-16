@@ -13,7 +13,9 @@ const int SAFE_DISTANCE = 2;
 const int SPEED_LIMIT = 4;
 const int NUM_STEPS = 100000;
 
-struct Car {
+const int TEST_VERSION = 2; // implemented: V2, V3
+
+struct CarV2 {
     int carIdx;
     int Position;
     int TargetPosition;
@@ -21,30 +23,60 @@ struct Car {
     int TargetSpeed;
 };
 
-struct Lane {
+struct CarV3 {
+    int Position;
+    int TargetPosition;
+    int Speed;
+    int TargetSpeed;
+};
+
+struct LaneV2 {
     int numCars;
-    Car* Cars;
-    Car* SortedCars;
+    CarV2* Cars;
+    CarV2* SortedCars;
+};
+
+struct LaneV3 {
+    int numCars;
+    int* CarIndices;
 };
 
 void printHeaderSpaceOccupancy(FILE* &fid);
 
-void sortCars(Lane &lane);
+void sortCarsForLaneV2(LaneV2 &lane);
 
-void initializeTraffic(Lane* &lanes);
+void sortCarIndicesForLaneV3(CarV3* &cars, LaneV3 &lane);
 
-void updateNumCars(Lane &lane);
+void initializeTrafficV2(LaneV2* &lanes);
 
-void sortCarsForPrinting(Lane &lane);
+void initializeTrafficV3(CarV3* &cars, LaneV3* &lanes);
 
-void printStepCars(FILE* &fid, Lane* &lanes);
+void updateNumCars(LaneV2 &lane);
 
-void printLaneOccupancy(FILE* &fid, Lane &lane);
+void sortCarsV2ForPrinting(LaneV2 &lane);
 
-void printStepSpaceOccupancy(FILE* &fid, Lane* lanes);
+void printStepCarsV2(FILE* &fid, LaneV2* &lanes);
 
-void execLaneChange(Lane &fromLane, Lane &toLane, int &idxCarToMove);
+void printStepCarsV3(FILE* &fid, CarV3* &cars, LaneV3* &lanes);
 
-bool tryLaneChange(Lane &lane, Lane &targetLane, int &carIdx, int &laneIdx, int &targetLaneIdx);
+void printLaneOccupancy(FILE* &fid, LaneV2 &lane);
+
+void printStepSpaceOccupancy(FILE* &fid, LaneV2* lanes);
+
+void execLaneChangeV2(LaneV2 &fromLane, LaneV2 &toLane, int &idxCarToMove);
+
+bool tryLaneChangeV2(LaneV2 &lane, LaneV2 &targetLane, int &carIdx, int &laneIdx, int &targetLaneIdx);
+
+void allCarsTryLaneChangeV2(LaneV2* &lanes, int &laneIdx);
+
+void allCarsDriveForwardV2(LaneV2* &lanes, int &lane_index);
+
+void execLaneChangeV3(CarV3* &cars, LaneV3 &fromLane, LaneV3 &toLane, int &laneCarIdxOfCarToMove);
+
+bool tryLaneChangeV3(CarV3* &cars, LaneV3 &lane, LaneV3 &targetLane, int &carIdx, int &laneIdx, int &targetLaneIdx);
+
+void allCarsTryLaneChangeV3(CarV3* &cars, LaneV3* lanes, int &laneIdx);
+
+void allCarsDriveForwardV3(CarV3* &cars, LaneV3* &lanes, int &lane_index);
 
 #endif

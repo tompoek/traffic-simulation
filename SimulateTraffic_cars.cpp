@@ -7,20 +7,27 @@
 int main(int argc, char** argv) {
     // Measure runtime
     std::chrono::high_resolution_clock::time_point start_clock; // used by all timers
-    auto microsecs_tryLaneChange = std::chrono::microseconds::zero();
-    auto microsecs_driveForward = std::chrono::microseconds::zero();
+    auto microsecs_allCarsTryLaneChange = std::chrono::microseconds::zero();
+    auto microsecs_allCarsDriveForward = std::chrono::microseconds::zero();
 
     // Prepare for printing to file
     FILE* fid = argc > 1 ? fopen(argv[1], "w") : stdout;
     // printHeaderSpaceOccupancy(fid);
 
-    // Initialization
-    Lane* lanes = static_cast<Lane*>(malloc(sizeof(Lane) * NUM_LANES));
-    initializeTraffic(lanes);
+    // Memory allocation
+    LaneV2* lanesV2 = static_cast<LaneV2*>(malloc(sizeof(LaneV2) * NUM_LANES));
+    CarV3* carsV3 = static_cast<CarV3*>(malloc(sizeof(CarV3)* NUM_CARS));
+    LaneV3* lanesV3 = static_cast<LaneV3*>(malloc(sizeof(LaneV3) * NUM_LANES));
 
-    //TODO: printStepCars
-    printStepCars(fid, lanes);
-    // printStepSpaceOccupancy(fid, lanes);
+    // Initialization
+    if (TEST_VERSION == 2) {
+        initializeTrafficV2(lanesV2);
+        printStepCarsV2(fid, lanesV2);
+    } else {
+        initializeTrafficV3(carsV3, lanesV3);
+        printStepCarsV3(fid, carsV3, lanesV3);
+    }
+    // printStepSpaceOccupancy(fid, lanesV2);
 
     // Simulation loop
     for (int step=0; step<NUM_STEPS; ++step) {
@@ -28,79 +35,39 @@ int main(int argc, char** argv) {
         // Try Lane change
         for (int laneIdx=0; laneIdx < NUM_LANES; ++laneIdx) {
             start_clock = std::chrono::high_resolution_clock::now();
-            Lane &lane = lanes[laneIdx];
-            bool hasLeadCar = false;
-            bool hasNextLane = true;
-            int nextLaneIdx = laneIdx + 1;
-            if (laneIdx == NUM_LANES - 1) {hasNextLane = false; nextLaneIdx = 0;}
-            Lane &nextLane = lanes[nextLaneIdx];
-            bool hasPreviousLane = true;
-            int previousLaneIdx = laneIdx - 1;
-            if (laneIdx == 0) {hasPreviousLane = false; previousLaneIdx = NUM_LANES - 1;}
-            Lane &previousLane = lanes[previousLaneIdx];
-            if (lane.numCars > 1) {
-                for (int i = lane.numCars-2; i >= 0; --i) {
-                    hasLeadCar = false;
-                    int &carPos = lane.Cars[i].Position;
-                    for (int j = i+1; j < lane.numCars; ++j) {
-                        // detect lead car in the current lane
-                        int distToCarj = ((lane.Cars[j].Position - carPos) % LANE_LENGTH + LANE_LENGTH) % LANE_LENGTH;
-                        if (distToCarj < SAFE_DISTANCE) {
-                            hasLeadCar = true;
-                            break;
-                        }
-                    }
-                    if (hasLeadCar) {
-                        bool carHasChangedLane = false;
-                        // detect cars in the target lane
-                        if (hasNextLane) {
-                            carHasChangedLane = tryLaneChange(lane, nextLane, i, laneIdx, nextLaneIdx);
-                        }
-                        if (!carHasChangedLane && hasPreviousLane) {
-                            carHasChangedLane = tryLaneChange(lane, previousLane, i, laneIdx, previousLaneIdx);
-                        }
-                    }
-                }
+            if (TEST_VERSION == 2) {
+                allCarsTryLaneChangeV2(lanesV2, laneIdx);
+            } else {
+                allCarsTryLaneChangeV3(carsV3, lanesV3, laneIdx);
             }
-            microsecs_tryLaneChange += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start_clock);
+            microsecs_allCarsTryLaneChange += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start_clock);
         }
 
         // All cars drive forward, must resolve collisions before updating positions
         for (int lane_index = 0; lane_index < NUM_LANES; ++lane_index) {
             start_clock = std::chrono::high_resolution_clock::now();
-            Lane &lane = lanes[lane_index];
-            int &numCars = lane.numCars;
-
-            // Determine target positions
-            for (int i = 0; i < numCars; ++i) {
-                lane.Cars[i].TargetPosition = lane.Cars[i].Position + lane.Cars[i].Speed;
+            if (TEST_VERSION == 2) {
+                allCarsDriveForwardV2(lanesV2, lane_index);
+            } else {
+                allCarsDriveForwardV3(carsV3, lanesV3, lane_index);
             }
-            for (int i = numCars - 1; i > 0; i--) {
-                int num_collisions = 0;
-                for (int j = i - 1; j >= 0; j--) {
-                    if (lane.Cars[j].TargetPosition >= lane.Cars[i].TargetPosition) { // ASSUMPTION: speeds never exceeds LANE_LENGTH
-                        // Collision detected, move car j as close as possible without colliding
-                        num_collisions++;
-                        lane.Cars[j].TargetPosition = lane.Cars[i].TargetPosition - num_collisions;
-                        lane.Cars[j].Speed = lane.Cars[i].Speed; // then adjust car j's speed to lead car i's speed
-                    }
-                }
-            }
-            // Update positions after collisions are resolved
-            for (int i = 0; i < numCars; ++i) {
-                lane.Cars[i].Position = ((lane.Cars[i].TargetPosition % LANE_LENGTH) + LANE_LENGTH) % LANE_LENGTH;
-            }
-            microsecs_driveForward += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start_clock);
+            microsecs_allCarsDriveForward += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start_clock);
         }
 
-        printStepCars(fid, lanes);
-        // printStepSpaceOccupancy(fid, lanes);
+        if (TEST_VERSION == 2) {
+            printStepCarsV2(fid, lanesV2);
+        } else {
+            printStepCarsV3(fid, carsV3, lanesV3);
+        }
+        // printStepSpaceOccupancy(fid, lanesV2);
     }
     printf("Num Steps: %d, Num Lanes: %d\n", NUM_STEPS, NUM_LANES);
-    printf("Cumulative microseconds of tryLaneChange = %ld us\n", microsecs_tryLaneChange.count());
-    printf("Cumulative microseconds of driveForward = %ld us\n", microsecs_driveForward.count());
+    printf("Cumulative microseconds of allCarsTryLaneChange = %ld us\n", microsecs_allCarsTryLaneChange.count());
+    printf("Cumulative microseconds of allCarsDriveForward = %ld us\n", microsecs_allCarsDriveForward.count());
 
-    free(lanes);
+    free(lanesV2);
+    free(carsV3);
+    free(lanesV3);
 
     return 0;
 }
