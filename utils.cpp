@@ -437,7 +437,7 @@ void allCarsDriveForwardV2(LaneV2* &lanes, int &lane_index) {
             if (lane.Cars[j].TargetPosition >= lane.Cars[i].TargetPosition) { // ASSUMPTION: speeds never exceeds LANE_LENGTH
                 // Collision detected, move car j as close as possible without colliding
                 num_collisions++;
-                lane.Cars[j].TargetPosition = lane.Cars[i].TargetPosition - num_collisions;
+                lane.Cars[j].TargetPosition = lane.Cars[i].TargetPosition - num_collisions; // ... - num_collisions * SAFE_DISTANCE;
                 lane.Cars[j].Speed = lane.Cars[i].Speed; // then adjust car j's speed to lead car i's speed
             }
         }
@@ -547,7 +547,7 @@ void allCarsDriveForwardV3(CarV3* &cars, LaneV3* &lanes, int &lane_index) {
             if (cars[lane.CarIndices[j]].TargetPosition >= cars[lane.CarIndices[i]].TargetPosition) { // ASSUMPTION: speeds never exceeds LANE_LENGTH
                 // Collision detected, move car j as close as possible without colliding
                 num_collisions++;
-                cars[lane.CarIndices[j]].TargetPosition = cars[lane.CarIndices[i]].TargetPosition - num_collisions;
+                cars[lane.CarIndices[j]].TargetPosition = cars[lane.CarIndices[i]].TargetPosition - num_collisions; // ... - num_collisions * SAFE_DISTANCE;
                 cars[lane.CarIndices[j]].Speed = cars[lane.CarIndices[i]].Speed; // then adjust car j's speed to lead car i's speed
             }
         }
