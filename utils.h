@@ -13,7 +13,9 @@ const int SAFE_DISTANCE = 2;
 const int SPEED_LIMIT = 4;
 const int NUM_STEPS = 100000;
 
-const int TEST_VERSION = 3; // implemented: V2, V3
+const int TEST_VERSION = 2; // implemented: V2, V3
+
+extern int COUNT_LANE_CHANGE; // for profiling number of successful lane changes
 
 struct CarV2 {
     int carIdx;

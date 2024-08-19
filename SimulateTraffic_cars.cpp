@@ -4,6 +4,8 @@
 
 #include "utils.h"
 
+int COUNT_LANE_CHANGE = 0; // for profiling number of successful lane changes
+
 int main(int argc, char** argv) {
     // Measure runtime
     std::chrono::high_resolution_clock::time_point start_clock; // used by all timers
@@ -29,7 +31,7 @@ int main(int argc, char** argv) {
 
     // Simulation loop
     for (int step=0; step<NUM_STEPS; ++step) {
-        printf("@ Step %d\n", step);
+        // printf("@ Step %d\n", step);
         // Try Lane change
         for (int laneIdx=0; laneIdx < NUM_LANES; ++laneIdx) {
             start_clock = std::chrono::high_resolution_clock::now();
@@ -58,7 +60,8 @@ int main(int argc, char** argv) {
             printStepCarsV3(fid, carsV3, lanesV3);
         }
     }
-    printf("Num Steps: %d, Num Lanes: %d\n", NUM_STEPS, NUM_LANES);
+    printf("Num Steps: %d, Num Lanes: %d, Num Cars: %d\n", NUM_STEPS, NUM_LANES, NUM_CARS);
+    printf("Num of successful lane changes = %d\n", COUNT_LANE_CHANGE);
     printf("Cumulative microseconds of allCarsTryLaneChange = %ld us\n", microsecs_allCarsTryLaneChange.count());
     printf("Cumulative microseconds of allCarsDriveForward = %ld us\n", microsecs_allCarsDriveForward.count());
 

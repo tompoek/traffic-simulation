@@ -379,7 +379,8 @@ bool tryLaneChangeV2(LaneV2 &lane, LaneV2 &targetLane, int &laneCarIdx, int &lan
     }
     if (targetLaneIsSafe) {
         // execute lane change
-        printf("Car %d changes from Lane %d to %d\n", lane.Cars[laneCarIdx].carIdx, laneIdx, targetLaneIdx);
+        // printf("Car %d changes from Lane %d to %d\n", lane.Cars[laneCarIdx].carIdx, laneIdx, targetLaneIdx);
+        COUNT_LANE_CHANGE++;
         execLaneChangeV2(lane, targetLane, laneCarIdx);
         carHasChangedLane = true;
     }
@@ -489,7 +490,8 @@ bool tryLaneChangeV3(CarV3* &cars, LaneV3 &lane, LaneV3 &targetLane, int &laneCa
     }
     if (targetLaneIsSafe) {
         // execute lane change
-        printf("Car %d changes from Lane %d to %d\n", lane.CarIndices[laneCarIdx], laneIdx, targetLaneIdx);
+        // printf("Car %d changes from Lane %d to %d\n", lane.CarIndices[laneCarIdx], laneIdx, targetLaneIdx);
+        COUNT_LANE_CHANGE++;
         execLaneChangeV3(cars, lane, targetLane, laneCarIdx);
         carHasChangedLane = true;
     }
