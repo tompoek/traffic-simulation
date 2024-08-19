@@ -2,9 +2,13 @@
 
 Simulation of one-way traffic aiming to parallelize when scaling up traffic size (#lanes, #cars)
 
-Compile and run:
+Compile and run locally:
 
 > ./test.sh
+
+Compile and run in UQ slurm:
+
+> sbatch sbatch_test.sh
 
 Visualize:
 
