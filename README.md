@@ -1,0 +1,32 @@
+# Traffic Simulation
+
+Simulation of one-way traffic aiming to parallelize when scaling up traffic size (#lanes, #cars)
+
+Compile and run:
+
+> ./test.sh
+
+Visualize:
+
+> Run visualizeTrafficCars.m in Matlab
+
+Change parameters in the codes (utils.h):
+
+```
+const int LANE_LENGTH = 50;
+const int NUM_LANES = 4;
+constexpr int RANDOM_SEED = 47; // = 0 for fixed scenario
+constexpr int NUM_CARS = (RANDOM_SEED > 0) ? 40 : (6 * NUM_LANES); // specify #cars to randomly distribute, or use fixed scenario
+const int SAFE_DISTANCE = 2;
+const int SPEED_LIMIT = 4;
+const int NUM_STEPS = 100000;
+const int TEST_VERSION = 3; // implemented: V2, V3
+```
+
+Change parameters in visualization (visualizeTrafficCars.m):
+
+```
+LANE_LENGTH = 50; % posIdx = 0:49
+NUM_LANES = 4; % laneIdx = 0:3
+PAUSE_TIME = 0.2; % The longer pause, the slower
+```
