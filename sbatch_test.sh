@@ -8,11 +8,11 @@
 # #SBATCH --mem-per-cpu=1M # memory (MB)
 #SBATCH --time=0-00:05 # time (D-HH:MM)
 #SBATCH --output=SimulateTraffic_largecpu.stdout
-#SBATCH --error=SimulateTraffic_largecpu.stderr
+# #SBATCH --error=SimulateTraffic.stderr # enable this when debugging
 
 set -o errexit
 
 make clean 
 make all 
-./SimulateTraffic_cars trafficCars.csv 
-gprof SimulateTraffic_cars gmon.out > profile_largecpu.txt
+./SimulateTraffic_cars trafficCars.csv # filename arg won't work when profiling (if printSteps are commented out)
+# gprof SimulateTraffic_cars gmon.out > profile_largecpu.txt

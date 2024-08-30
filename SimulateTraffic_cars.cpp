@@ -13,7 +13,7 @@ int main(int argc, char** argv) {
     auto microsecs_allCarsDriveForward = std::chrono::microseconds::zero();
 
     // Prepare for printing to file
-    FILE* fid = argc > 1 ? fopen(argv[1], "w") : stdout;
+    FILE* fid = argc > 1 ? fopen(argv[1], "w") : stdout; // comment out when profiling
 
     // Memory allocation
     LaneV2* lanesV2 = static_cast<LaneV2*>(malloc(sizeof(LaneV2) * NUM_LANES));
@@ -23,10 +23,10 @@ int main(int argc, char** argv) {
     // Initialization
     if (TEST_VERSION == 2) {
         initializeTrafficV2(lanesV2);
-        printStepCarsV2(fid, lanesV2);
+        printStepCarsV2(fid, lanesV2); // comment out when profiling
     } else {
         initializeTrafficV3(carsV3, lanesV3);
-        printStepCarsV3(fid, carsV3, lanesV3);
+        printStepCarsV3(fid, carsV3, lanesV3); // comment out when profiling
     }
 
     // Simulation loop
@@ -55,9 +55,9 @@ int main(int argc, char** argv) {
         }
 
         if (TEST_VERSION == 2) {
-            printStepCarsV2(fid, lanesV2);
+            printStepCarsV2(fid, lanesV2); // comment out when profiling
         } else {
-            printStepCarsV3(fid, carsV3, lanesV3);
+            printStepCarsV3(fid, carsV3, lanesV3); // comment out when profiling
         }
     }
     printf("Num Steps: %d, Num Lanes: %d, Num Cars: %d\n", NUM_STEPS, NUM_LANES, NUM_CARS);
