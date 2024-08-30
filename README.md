@@ -34,3 +34,11 @@ LANE_LENGTH = 50; % posIdx = 0:49
 NUM_LANES = 4; % laneIdx = 0:3
 PAUSE_TIME = 0.2; % The longer pause, the slower
 ```
+
+Compile and run when profiling / benchmarking performance: (disable printSteps, no visualization)
+
+> Comment out all lines of codes in the main function (SimulateTraffic_cars.cpp) that have comments below:
+
+```
+// comment out when profiling
+```
