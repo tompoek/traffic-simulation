@@ -3,7 +3,7 @@
 CXX = g++
 
 # Compiler flags
-CXXFLAGS = -Wall -pg -O0
+CXXFLAGS = -Wall -pg -O2
 
 # Source files
 SRCS = SimulateTraffic_cars.cpp utils.cpp
