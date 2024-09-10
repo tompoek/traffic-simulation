@@ -1,17 +1,19 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include <algorithm>
-#include <cstdio>
-#include <random>
+#include <iostream>
+#include <cuda_runtime.h>
 
-const int LANE_LENGTH = 50;
+const int LANE_LENGTH = 1024;
 const int NUM_LANES = 4;
 constexpr int RANDOM_SEED = 47; // = 0 for fixed scenario
-constexpr int NUM_CARS = (RANDOM_SEED > 0) ? 40 : (6 * NUM_LANES); // specify #cars to randomly distribute, or use fixed scenario
+constexpr int NUM_CARS = (RANDOM_SEED > 0) ? 2000 : (6 * NUM_LANES); // specify #cars to randomly distribute, or use fixed scenario
+const int NUM_THREADS = 256; // Single-block implementation
+constexpr int NUM_LANE_BLOCKS = (NUM_LANES > 4) ? 4 : NUM_LANES; // Multi-block implementation
+constexpr int NUM_CAR_THREADS = (NUM_CARS > (256*NUM_LANE_BLOCKS)) ? 256 : NUM_CARS; // Multi-block implementation
 const int SAFE_DISTANCE = 2;
 const int SPEED_LIMIT = 4;
-const int NUM_STEPS = 100000;
+const int NUM_STEPS = 100;
 
 const int TEST_VERSION = 2; // implemented: V2, V3
 
@@ -50,11 +52,15 @@ void initializeTrafficV2(LaneV2* &lanes);
 
 void initializeTrafficV3(CarV3* &cars, LaneV3* &lanes);
 
+void initializeTrafficCUDA(CarV3* &cars, int* &numCarsInLanes, int* &carIndicesInLanes);
+
 void updateNumCars(LaneV2 &lane);
 
 void printStepCarsV2(FILE* &fid, LaneV2* &lanes);
 
 void printStepCarsV3(FILE* &fid, CarV3* &cars, LaneV3* &lanes);
+
+void printStepCarsCUDA(FILE* &fid, CarV3* &cars, int* &numCarsInLanesDevice, int* &carIndicesInLanesDevice);
 
 void execLaneChangeV2(LaneV2 &fromLane, LaneV2 &toLane, int &idxCarToMove);
 
