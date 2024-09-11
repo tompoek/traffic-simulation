@@ -214,7 +214,6 @@ int main(int argc, char** argv) {
         checkError(cudaMemcpy(carIndicesInLanesDevice, carIndicesInLanes, NUM_LANES*sizeof(*carIndicesInLanes), cudaMemcpyHostToDevice));
 
         allCarsDriveForwardCUDA<<<1, NUM_THREADS>>>(carsDevice, numCarsInLanesDevice, carIndicesInLanesDevice); // Single-block implementation
-        // allCarsDriveForwardCUDA<<<NUM_LANE_BLOCKS, NUM_CAR_THREADS>>>(carsDevice, numCarsInLanesDevice, carIndicesInLanesDevice); // Multi-block implementation
 
             //<<<JUST DEBUGGING >>>
         // for (int lane_index = 0; lane_index < NUM_LANES; ++lane_index) {

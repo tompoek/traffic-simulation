@@ -8,28 +8,28 @@ CXXFLAGS = -Wall -pg -O2
 NVFLAGS = -g --gpu-architecture=sm_35 -Wno-deprecated-gpu-targets -O2
 
 # Source files
-SRCS = SimulateTraffic_cars.cpp utils.cpp
-CUDA_SRCS = SimulateTraffic_cuda.cu
+SRCS = SimulateTrafficMultiLanes.cpp utils.cpp
+CUDA_SRCS = SimulateTrafficMultiLanes_CUDA.cu
 
 # Object files
 OBJS = $(SRCS:.cpp=.o) $(CUDA_SRCS:.cu=.o)
 
 # Output results files
-RESULTS = trafficCars.csv trafficCars_cuda.csv
+RESULTS = TrafficMultiLanes.csv SimulateTrafficMultiLanes_CUDA.csv
 
 # Output profile
 PROF = gmon.out profile.txt
 
 # Executable name
-EXEC = SimulateTraffic_cars SimulateTraffic_cuda
+EXEC = SimulateTrafficMultiLanes SimulateTrafficMultiLanes_CUDA
 
 # Default target
 all: $(EXEC)
 
 # Link object files to create the executable
-SimulateTraffic_cars: SimulateTraffic_cars.o utils.o
+SimulateTrafficMultiLanes: SimulateTrafficMultiLanes.o utils.o
 	$(CXX) $(CXXFLAGS) $^ -o $@
-SimulateTraffic_cuda: SimulateTraffic_cuda.o utils.o
+SimulateTrafficMultiLanes_CUDA: SimulateTrafficMultiLanes_CUDA.o utils.o
 	$(NVCC) $(NVFLAGS) $^ -o $@
 
 # Compile source files to object files

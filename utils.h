@@ -4,13 +4,11 @@
 #include <iostream>
 #include <cuda_runtime.h>
 
-const int LANE_LENGTH = 1024;
-const int NUM_LANES = 4;
+const int LANE_LENGTH = 2048;
+const int NUM_LANES = 2;
 constexpr int RANDOM_SEED = 47; // = 0 for fixed scenario
 constexpr int NUM_CARS = (RANDOM_SEED > 0) ? 2000 : (6 * NUM_LANES); // specify #cars to randomly distribute, or use fixed scenario
 const int NUM_THREADS = 256; // Single-block implementation
-constexpr int NUM_LANE_BLOCKS = (NUM_LANES > 4) ? 4 : NUM_LANES; // Multi-block implementation
-constexpr int NUM_CAR_THREADS = (NUM_CARS > (256*NUM_LANE_BLOCKS)) ? 256 : NUM_CARS; // Multi-block implementation
 const int SAFE_DISTANCE = 2;
 const int SPEED_LIMIT = 4;
 const int NUM_STEPS = 100;
@@ -42,6 +40,15 @@ struct LaneV2 {
 struct LaneV3 {
     int numCars;
     int* CarIndices;
+};
+
+struct Car {
+    int laneIdx;
+    int leadCarIdx;
+    int followerCarIdx;
+    int Position;
+    int TargetPosition;
+    int TargetSpeed;
 };
 
 void sortCarsForLaneV2(LaneV2 &lane);
