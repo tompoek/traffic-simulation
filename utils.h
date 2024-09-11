@@ -42,15 +42,6 @@ struct LaneV3 {
     int* CarIndices;
 };
 
-struct Car {
-    int laneIdx;
-    int leadCarIdx;
-    int followerCarIdx;
-    int Position;
-    int TargetPosition;
-    int TargetSpeed;
-};
-
 void sortCarsForLaneV2(LaneV2 &lane);
 
 void sortCarIndicesForLaneV3(CarV3* &cars, LaneV3 &lane);
