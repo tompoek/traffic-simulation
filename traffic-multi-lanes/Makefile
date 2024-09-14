@@ -15,7 +15,7 @@ CUDA_SRCS = SimulateTrafficMultiLanes_CUDA.cu
 OBJS = $(SRCS:.cpp=.o) $(CUDA_SRCS:.cu=.o)
 
 # Output results files
-RESULTS = TrafficMultiLanes.csv SimulateTrafficMultiLanes_CUDA.csv
+RESULTS = TrafficMultiLanes.csv TrafficMultiLanes_CUDA.csv
 
 # Output profile
 PROF = gmon.out profile.txt
