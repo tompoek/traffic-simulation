@@ -90,14 +90,9 @@ int main(int argc, char** argv) {
         int* iAmTheFirstLeader = new int [NUM_CARS];
         int* myLeaderCarDistance = new int [NUM_CARS];
         int* myFrontIsSafe = new int [NUM_CARS];
-        // std::transform(cars, cars + NUM_CARS, iAmTheFirstLeader, [](const Car& car) { return int(car.leaderCarIdx < 0); });
-        // std::transform(cars, cars + NUM_CARS, iAmTheFirstLeader, myLeaderCarDistance, [](const Car& car, const int& isFirstLeader) { return isFirstLeader ? INT_MAX : cars[car.leaderCarIdx].TargetPosition - car.TargetPosition; });
-        // std::transform(myLeaderCarDistance, myLeaderCarDistance + NUM_CARS, iAmTheFirstLeader, myFrontIsSafe, [](const int& distance, const int& isFirstLeader) { return int( isFirstLeader || (distance > 0) ); });
-        for (int carIdx = 0; carIdx < NUM_CARS; carIdx++) {
-            iAmTheFirstLeader[carIdx] = int(cars[carIdx].leaderCarIdx < 0);
-            myLeaderCarDistance[carIdx] = (iAmTheFirstLeader[carIdx]) ? INT_MAX : cars[cars[carIdx].leaderCarIdx].TargetPosition - cars[carIdx].TargetPosition;
-            myFrontIsSafe[carIdx] = int( (iAmTheFirstLeader[carIdx]) || (myLeaderCarDistance[carIdx] > 0) );
-        }
+        std::transform(cars, cars + NUM_CARS, iAmTheFirstLeader, [](const Car& car) { return int(car.leaderCarIdx < 0); });
+        std::transform(cars, cars + NUM_CARS, iAmTheFirstLeader, myLeaderCarDistance, [](const Car& car, const int& isFirstLeader) { return isFirstLeader ? INT_MAX : cars[car.leaderCarIdx].TargetPosition - car.TargetPosition; });
+        std::transform(myLeaderCarDistance, myLeaderCarDistance + NUM_CARS, iAmTheFirstLeader, myFrontIsSafe, [](const int& distance, const int& isFirstLeader) { return int( isFirstLeader || (distance > 0) ); });
         int ourFrontIsSafe;
         // ask if everyone feels safe in their front
         ourFrontIsSafe = std::accumulate(myFrontIsSafe, myFrontIsSafe + NUM_CARS, 1, std::multiplies<int>());
@@ -108,21 +103,16 @@ int main(int argc, char** argv) {
                                                 (myFrontIsSafe[carIdx])/*if safe*/ * (cars[carIdx].TargetPosition)/*maintain my target position*/;
             }
             // see if my front is safe now
-            // std::transform(cars, cars + NUM_CARS, iAmTheFirstLeader, [](const Car& car) { return int(car.leaderCarIdx < 0); });
-            // std::transform(cars, cars + NUM_CARS, iAmTheFirstLeader, myLeaderCarDistance, [](const Car& car, const int& isFirstLeader) { return isFirstLeader ? INT_MAX : cars[car.leaderCarIdx].TargetPosition - car.TargetPosition; });
-            // std::transform(myLeaderCarDistance, myLeaderCarDistance + NUM_CARS, iAmTheFirstLeader, myFrontIsSafe, [](const int& distance, const int& isFirstLeader) { return int( isFirstLeader || (distance > 0) ); });
-            for (int carIdx = 0; carIdx < NUM_CARS; carIdx++) {
-                iAmTheFirstLeader[carIdx] = int(cars[carIdx].leaderCarIdx < 0);
-                myLeaderCarDistance[carIdx] = (iAmTheFirstLeader[carIdx]) ? INT_MAX : cars[cars[carIdx].leaderCarIdx].TargetPosition - cars[carIdx].TargetPosition;
-                myFrontIsSafe[carIdx] = int( (iAmTheFirstLeader[carIdx]) || (myLeaderCarDistance[carIdx] > 0) );
-            }
+            std::transform(cars, cars + NUM_CARS, iAmTheFirstLeader, [](const Car& car) { return int(car.leaderCarIdx < 0); });
+            std::transform(cars, cars + NUM_CARS, iAmTheFirstLeader, myLeaderCarDistance, [](const Car& car, const int& isFirstLeader) { return isFirstLeader ? INT_MAX : cars[car.leaderCarIdx].TargetPosition - car.TargetPosition; });
+            std::transform(myLeaderCarDistance, myLeaderCarDistance + NUM_CARS, iAmTheFirstLeader, myFrontIsSafe, [](const int& distance, const int& isFirstLeader) { return int( isFirstLeader || (distance > 0) ); });
             // ask if everyone feels safe in their front
             ourFrontIsSafe = std::accumulate(myFrontIsSafe, myFrontIsSafe + NUM_CARS, 1, std::multiplies<int>());
         }
         // update actual position
         for (int carIdx = 0; carIdx < NUM_CARS; carIdx++) {
             cars[carIdx].Position = cars[carIdx].TargetPosition;
-            cars[carIdx].TargetSpeed = /*randomly change target speed to increase traffic dynamics.*/ (rand()%SPEED_LIMIT) + 1;
+            // cars[carIdx].TargetSpeed = /*randomly change target speed to increase traffic dynamics.*/ (rand()%SPEED_LIMIT) + 1;
         }
         microsecs_allCarsDriveForward += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start_clock);
 
