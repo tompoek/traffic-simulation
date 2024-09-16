@@ -47,11 +47,10 @@ void tryLaneChangeCUDA(Car* cars, int* countLaneChange) {
         for (int carIdx2 = 0; carIdx2 < NUM_CARS; carIdx2++) {
             safeToMoveHere[carIdx2] = int(weAreAtTheSameLane[carIdx2] || (distanceToMe[carIdx2]!=0));
         }
-        int safeToChangeLane = 1;
+        int safeToChangeLane = 1; //TODO: optimize reduction
         for (int carIdx2 = 0; carIdx2 < NUM_CARS; carIdx2++) {
             safeToChangeLane *= safeToMoveHere[carIdx2];
         }
-        // printf("Thread %d: myFrontIsSafe = %d, safeToChangeLane = %d\n", thrIdx+1, myFrontIsSafe, safeToChangeLane);
         // if my front is not safe and it's safe to change lane
         if (!myFrontIsSafe && safeToChangeLane) {
             // find my closest leader car and follower car in target lane
@@ -59,7 +58,6 @@ void tryLaneChangeCUDA(Car* cars, int* countLaneChange) {
             for (int carIdx2 = 0; carIdx2 < NUM_CARS; carIdx2++) {
                 int iAmBehindYou = int( distanceToMe[carIdx2] < 0 );
                 int iAmAheadOfYou = int( distanceToMe[carIdx2] > 0 );
-                //TODO: Try AtomicMin and AtomicMax
                 if (!weAreAtTheSameLane[carIdx2] && iAmBehindYou && distanceToMe[carIdx2] > closestFollowerDistance) {
                     closestFollowerDistance = distanceToMe[carIdx2];
                     closestFollowerIdx = carIdx2;
@@ -67,6 +65,18 @@ void tryLaneChangeCUDA(Car* cars, int* countLaneChange) {
                     closestLeaderDistance = distanceToMe[carIdx2];
                     closestLeaderIdx = carIdx2;
                 }
+                // // ISSUE: atomicMin / atomicMax would cause CUDA error: 719 : unspecified launch failure
+                // if (!weAreAtTheSameLane[carIdx2] && iAmBehindYou) {
+                //     atomicMax(&closestFollowerDistance, distanceToMe[carIdx2]);
+                //     if (closestFollowerDistance == distanceToMe[carIdx2]) {
+                //         closestFollowerIdx = carIdx2;
+                //     }
+                // } else if (!weAreAtTheSameLane[carIdx2] && iAmAheadOfYou) {
+                //     atomicMin(&closestLeaderDistance, distanceToMe[carIdx2]);
+                //     if (closestLeaderDistance == distanceToMe[carIdx2]) {
+                //         closestLeaderIdx = carIdx2;
+                //     }
+                // }
             }
             // move myself to target lane
             cars[cars[carIdx].leaderCarIdx].followerCarIdx = /*my follower becomes my leader car's follower.*/ cars[carIdx].followerCarIdx;
