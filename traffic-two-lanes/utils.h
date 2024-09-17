@@ -20,7 +20,6 @@ struct Car {
     int TargetSpeed;
 };
 
-extern int* ourFrontIsSafe;
 extern Car* cars;
 
 extern int* numCarsInLanes; // only used for init

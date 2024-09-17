@@ -125,7 +125,6 @@ int main(int argc, char** argv) {
     printf("Cumulative microseconds of allCarsDriveForward = %ld us\n", microsecs_allCarsDriveForward.count());
 
 
-    free(ourFrontIsSafe);
     free(cars);
     
 

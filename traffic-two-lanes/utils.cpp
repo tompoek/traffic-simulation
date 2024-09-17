@@ -5,7 +5,6 @@
 
 #include "utils.h"
 
-int* ourFrontIsSafe = static_cast<int*>(malloc(sizeof(*ourFrontIsSafe) * 2)); // for two-lanes implementation
 Car* cars = static_cast<Car*>(malloc(sizeof(*cars) * NUM_CARS));
 
 int COUNT_LANE_CHANGE = 0; // for profiling number of successful lane changes
@@ -14,8 +13,6 @@ int* carIndicesInLanes = static_cast<int*>(malloc(sizeof(int) * 2 * LANE_LENGTH)
 
 
 void initializeTrafficTwoLanes() {
-    ourFrontIsSafe[0] = 1;
-    ourFrontIsSafe[1] = 1;
     numCarsInLanes[0] = 0;
     numCarsInLanes[1] = 0;
     // Random>> Distribute NUM_CARS cars randomly across all lanes
