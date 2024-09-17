@@ -1,5 +1,4 @@
 #include <iostream>
-#include <vector>
 #include <chrono>
 #include <curand_kernel.h>
 
