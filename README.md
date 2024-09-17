@@ -1,6 +1,6 @@
 # Traffic Simulation
 
-Simulation of one-way traffic aiming to parallelize when scaling up traffic size (#lanes, #cars)
+Simulation of one-way traffic aiming to parallelize when scaling up traffic size (#cars, and #lanes if running multi-lanes)
 
 Compile and run locally:
 
@@ -12,9 +12,9 @@ Compile and run in UQ slurm:
 
 Visualize:
 
-> Run visualizeTrafficCars.m in Matlab
+> Run visualizeTrafficMultiLanes.m / visualizeTrafficTwoLanes.m in Matlab
 
-Change parameters in the codes (utils.h):
+Change parameters in the codes (utils.h): (example utils for multi-lanes below)
 
 ```
 const int LANE_LENGTH = 50;
@@ -27,7 +27,7 @@ const int NUM_STEPS = 100000;
 const int TEST_VERSION = 3; // implemented: V2, V3
 ```
 
-Change parameters in visualization (visualizeTrafficCars.m):
+Change parameters in visualization (visualizeTrafficMultiLanes.m):
 
 ```
 LANE_LENGTH = 50; % posIdx = 0:49
@@ -37,7 +37,7 @@ PAUSE_TIME = 0.2; % The longer pause, the slower
 
 Compile and run when profiling / benchmarking performance: (disable printSteps, no visualization)
 
-> Comment out all lines of codes in the main function (SimulateTraffic_cars.cpp) that have comments below:
+> Comment out all lines of codes in the main function (SimulateTrafficMultiLanes.cpp / SimulateTrafficTwoLanes.cpp) that have comments below:
 
 ```
 // comment out when profiling
@@ -47,4 +47,4 @@ Compile and run when profiling / benchmarking performance: (disable printSteps, 
 
 ## Interim update
 
-__This repo is backed up as a multi-lanes implementation, another work on two-lanes implementation is ongoing. Final decision is TBD!__
+__Working on traffic-two-lanes. Final decision of where to go is TBD!__
