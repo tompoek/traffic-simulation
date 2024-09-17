@@ -94,27 +94,96 @@ void tryLaneChangeCUDA(Car* cars, int* countLaneChange) {
 }
 
 __global__ 
-void resolveCollisionsCUDA(Car* cars, int* ourFrontIsSafe) {
+void eachCarTryLaneChangeCUDA(Car* cars, int* carIndices, int* countLaneChange) {
+    int &carIdx = carIndices[0];
+    int thrIdx = threadIdx.x;
+    int numThreads = blockDim.x;
+        // see if my front is safe
+        int iAmTheFirstLeader;
+        iAmTheFirstLeader = int(cars[carIdx].leaderCarIdx == -1);
+        __shared__ /*per block shared memory*/ int weAreAtTheSameLane[NUM_CARS];
+        for (int carIdx2 = thrIdx; carIdx2 < NUM_CARS; carIdx2 += numThreads) {
+            weAreAtTheSameLane[carIdx2] = int(cars[carIdx2].laneIdx == cars[carIdx].laneIdx);
+        }
+        __shared__ int myFrontIsSafe;
+        myFrontIsSafe = (iAmTheFirstLeader) ? 1 : int( 
+                cars[cars[carIdx].leaderCarIdx].TargetPosition - cars[carIdx].TargetPosition > 0 );
+        // see if i can change lane
+        __shared__ int distanceToMe[NUM_CARS];
+        for (int carIdx2 = thrIdx; carIdx2 < NUM_CARS; carIdx2 += numThreads) {
+            distanceToMe[carIdx2] = cars[carIdx2].Position - cars[carIdx].Position;
+        }
+        __shared__ int safeToMoveHere[NUM_CARS];
+        for (int carIdx2 = thrIdx; carIdx2 < NUM_CARS; carIdx2 += numThreads) {
+            safeToMoveHere[carIdx2] = int(weAreAtTheSameLane[carIdx2] || (distanceToMe[carIdx2]!=0));
+        }
+        
+        extern __shared__ int safeToChangeLane[];
+        safeToChangeLane[thrIdx] = 1;
+        for (int carIdx2 = thrIdx; carIdx2 < NUM_CARS; carIdx2 += numThreads) {
+            safeToChangeLane[thrIdx] *= safeToMoveHere[carIdx2];
+        }
+        for (int i = numThreads/2; i > 0; i /= 2) {
+            __syncthreads(); // must wait for all threads to reach here
+            if (thrIdx < i) {
+                safeToChangeLane[thrIdx] *= safeToChangeLane[thrIdx + i] /*only thread 0 gets correct result*/;
+            }
+        }
+
+        // if my front is not safe and it's safe to change lane
+        if (!myFrontIsSafe && safeToChangeLane[0]) {
+            // find my closest leader car and follower car in target lane
+            int closestFollowerDistance = INT_MIN; int closestLeaderDistance = INT_MAX; int closestFollowerIdx = -1; int closestLeaderIdx = -1;
+            for (int carIdx2 = thrIdx; carIdx2 < NUM_CARS; carIdx2 += numThreads) {
+                int iAmBehindYou = int( distanceToMe[carIdx2] < 0 );
+                int iAmAheadOfYou = int( distanceToMe[carIdx2] > 0 );
+                if (!weAreAtTheSameLane[carIdx2] && iAmBehindYou && distanceToMe[carIdx2] > closestFollowerDistance) {
+                    closestFollowerDistance = distanceToMe[carIdx2];
+                    closestFollowerIdx = carIdx2;
+                } else if (!weAreAtTheSameLane[carIdx2] && iAmAheadOfYou && distanceToMe[carIdx2] < closestLeaderDistance) {
+                    closestLeaderDistance = distanceToMe[carIdx2];
+                    closestLeaderIdx = carIdx2;
+                }
+            }
+            // move myself to target lane
+            cars[cars[carIdx].leaderCarIdx].followerCarIdx = /*my follower becomes my leader car's follower.*/ cars[carIdx].followerCarIdx;
+            cars[cars[carIdx].followerCarIdx].leaderCarIdx = /*my leader becomes my follower car's leader.*/ cars[carIdx].leaderCarIdx;
+            cars[carIdx].laneIdx = (cars[carIdx].laneIdx + 1) % 2;
+            cars[carIdx].followerCarIdx = closestFollowerIdx;
+            cars[carIdx].leaderCarIdx = closestLeaderIdx;
+            if (closestLeaderIdx != -1) { cars[closestLeaderIdx].followerCarIdx = /*i become the closest leader car's follower.*/ carIdx; }
+            if (closestFollowerIdx != -1) { cars[closestFollowerIdx].leaderCarIdx = /*i become the closest follower car's leader.*/ carIdx; }
+
+            countLaneChange[0]++; // for debug
+            if (thrIdx == 0) printf("Car[%d] just changed lane!!\n", carIdx);
+        }
+}
+
+__global__ 
+void resolveCollisionsCUDA(Car* cars) {
     int thrIdx = threadIdx.x;
     int numThreads = blockDim.x;
     // see if my front is safe
+    // __shared__ int firstLeaderCarIdx[2];
     __shared__ int iAmTheFirstLeader[NUM_CARS];
     __shared__ int myLeaderCarDistance[NUM_CARS];
     __shared__ int myFrontIsSafe[NUM_CARS];
     for (int carIdx = thrIdx; carIdx < NUM_CARS; carIdx += numThreads) {
+        // if (cars[carIdx].leaderCarIdx < 0) { firstLeaderCarIdx[cars[carIdx].laneIdx] = carIdx; }
         iAmTheFirstLeader[carIdx] = int(cars[carIdx].leaderCarIdx < 0);
         myLeaderCarDistance[carIdx] = (iAmTheFirstLeader[carIdx]) ? INT_MAX : cars[cars[carIdx].leaderCarIdx].TargetPosition - cars[carIdx].TargetPosition;
         myFrontIsSafe[carIdx] = int( (iAmTheFirstLeader[carIdx]) || (myLeaderCarDistance[carIdx] > 0) );
     }
     // ask if everyone feels safe in their front
-    ourFrontIsSafe[thrIdx] = 1;
+    extern __shared__ int ourFrontIsSafeDevice[];
+    ourFrontIsSafeDevice[thrIdx] = 1;
     for (int carIdx = thrIdx; carIdx < NUM_CARS; carIdx += numThreads) {
-        ourFrontIsSafe[thrIdx] *= myFrontIsSafe[carIdx];
+        ourFrontIsSafeDevice[thrIdx] *= myFrontIsSafe[carIdx];
     }
     for (int i = numThreads/2; i > 0; i /= 2) {
         __syncthreads(); // must wait for all threads to reach here
         if (thrIdx < i) {
-            ourFrontIsSafe[thrIdx] *= ourFrontIsSafe[thrIdx + i] /*only thread 0 gets correct result*/;
+            ourFrontIsSafeDevice[thrIdx] *= ourFrontIsSafeDevice[thrIdx + i] /*only thread 0 gets correct result*/;
         }
     }
 
@@ -123,31 +192,40 @@ void resolveCollisionsCUDA(Car* cars, int* ourFrontIsSafe) {
     numLoops = 0;
     //DEBUG >>>
     
-    while (!ourFrontIsSafe[0] /*only thread 0 gets correct result*/) { // as long as anyone is unsafe in their front
+    while (!ourFrontIsSafeDevice[0] /*only thread 0 gets correct result*/) { // as long as anyone is unsafe in their front
     //DEBUG >>>
     numLoops++;
-    if (numLoops>100) {printf("Error: too many loops!"); break;}
+    if (numLoops>=100) {if (thrIdx==0) {printf("Error: TOO MANY LOOPS! NUM LOOPs > %d\n", numLoops);} break;}
     //DEBUG >>>
         // update target position
+        // if (thrIdx == 0 || thrIdx == 1 /*only two threads will perform this task*/) {
+        //     int tempCarIdx = firstLeaderCarIdx[thrIdx];
+        //     int tempFollowerCarIdx = cars[tempCarIdx].followerCarIdx;
+        //     while (tempFollowerCarIdx != -1) {
+        //         cars[tempFollowerCarIdx].TargetPosition = (!myFrontIsSafe[tempFollowerCarIdx])/*if unsafe*/ * (cars[tempCarIdx].TargetPosition - 1)/*a distance behind my leader car*/ + 
+        //                                                     (myFrontIsSafe[tempFollowerCarIdx])/*if safe*/ * (cars[tempFollowerCarIdx].TargetPosition)/*maintain my target position*/;
+        //         tempFollowerCarIdx = cars[tempCarIdx].followerCarIdx;
+        //         tempCarIdx = tempFollowerCarIdx;
+        //     }
+        // }
         for (int carIdx = thrIdx; carIdx < NUM_CARS; carIdx += numThreads) {
             cars[carIdx].TargetPosition = (!myFrontIsSafe[carIdx])/*if unsafe*/ * (cars[cars[carIdx].leaderCarIdx].TargetPosition - 1)/*a distance behind my leader car*/ + 
                                             (myFrontIsSafe[carIdx])/*if safe*/ * (cars[carIdx].TargetPosition)/*maintain my target position*/;
         }
         // see if my front is safe now
         for (int carIdx = thrIdx; carIdx < NUM_CARS; carIdx += numThreads) {
-            iAmTheFirstLeader[carIdx] = int(cars[carIdx].leaderCarIdx < 0);
             myLeaderCarDistance[carIdx] = (iAmTheFirstLeader[carIdx]) ? INT_MAX : cars[cars[carIdx].leaderCarIdx].TargetPosition - cars[carIdx].TargetPosition;
             myFrontIsSafe[carIdx] = int( (iAmTheFirstLeader[carIdx]) || (myLeaderCarDistance[carIdx] > 0) );
         }
         // ask if everyone feels safe in their front
-        ourFrontIsSafe[thrIdx] = 1;
+        ourFrontIsSafeDevice[thrIdx] = 1;
         for (int carIdx = thrIdx; carIdx < NUM_CARS; carIdx += numThreads) {
-            ourFrontIsSafe[thrIdx] *= myFrontIsSafe[carIdx];
+            ourFrontIsSafeDevice[thrIdx] *= myFrontIsSafe[carIdx];
         }
         for (int i = numThreads/2; i > 0; i /= 2) {
             __syncthreads(); // must wait for all threads to reach here
             if (thrIdx < i) {
-                ourFrontIsSafe[thrIdx] *= ourFrontIsSafe[thrIdx + i] /*only thread 0 gets correct result*/;
+                ourFrontIsSafeDevice[thrIdx] *= ourFrontIsSafeDevice[thrIdx + i] /*only thread 0 gets correct result*/;
             }
         }
     }
@@ -180,8 +258,8 @@ int main(int argc, char** argv) {
     // Memory allocation
     Car* carsDevice;
     checkError(cudaMalloc(&carsDevice, NUM_CARS*sizeof(*carsDevice)));
-    int* ourFrontIsSafe;
-    checkError(cudaMalloc(&ourFrontIsSafe, NUM_THREADS*sizeof(*ourFrontIsSafe)));
+    int* carIndicesDevice;
+    checkError(cudaMalloc(&carIndicesDevice, sizeof(*carIndicesDevice)));
     int* countLaneChangeDevice;
     checkError(cudaMalloc(&countLaneChangeDevice, sizeof(*countLaneChangeDevice)));
     checkError(cudaMemcpy(countLaneChangeDevice, &COUNT_LANE_CHANGE, sizeof(*countLaneChangeDevice), cudaMemcpyHostToDevice));
@@ -200,13 +278,17 @@ int main(int argc, char** argv) {
         // ALL CARS TRY LANE CHANGE
         start_clock = std::chrono::high_resolution_clock::now();
         determineTargetPositionCUDA<<<1, NUM_THREADS>>>(carsDevice);
+        // for (int carIdx = 0; carIdx < NUM_CARS; carIdx++) {
+        //     checkError(cudaMemcpy(carIndicesDevice, &carIdx, sizeof(*carIndicesDevice), cudaMemcpyHostToDevice));
+        //     eachCarTryLaneChangeCUDA<<<1, NUM_THREADS>>>(carsDevice, carIndicesDevice, countLaneChangeDevice);
+        // }
         tryLaneChangeCUDA<<<1, NUM_THREADS>>>(carsDevice, countLaneChangeDevice);
         microsecs_allCarsTryLaneChange += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start_clock);
         
         // ALL CARS DRIVE FORWARD
         start_clock = std::chrono::high_resolution_clock::now();
         determineTargetPositionCUDA<<<1, NUM_THREADS>>>(carsDevice);
-        resolveCollisionsCUDA<<<1, NUM_THREADS>>>(carsDevice, ourFrontIsSafe);
+        resolveCollisionsCUDA<<<1, NUM_THREADS, NUM_THREADS*sizeof(int) /*reserve for dynamically shared memory: ourFrontIsSafeDevice*/>>>(carsDevice);
         updateActualPositionCUDA<<<1, NUM_THREADS>>>(carsDevice);
         microsecs_allCarsDriveForward += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start_clock);
 
@@ -221,7 +303,7 @@ int main(int argc, char** argv) {
     printf("Cumulative microseconds of allCarsDriveForward = %ld us\n", microsecs_allCarsDriveForward.count());
 
     checkError(cudaFree(carsDevice));
-    checkError(cudaFree(ourFrontIsSafe));
+    checkError(cudaFree(carIndicesDevice));
     checkError(cudaFree(countLaneChangeDevice));
     return 0;
 }
