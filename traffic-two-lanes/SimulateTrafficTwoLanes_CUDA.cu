@@ -304,5 +304,9 @@ int main(int argc, char** argv) {
     checkError(cudaFree(carsDevice));
     checkError(cudaFree(carIndicesDevice));
     checkError(cudaFree(countLaneChangeDevice));
+
+    
+    free(cars);
+    
     return 0;
 }
