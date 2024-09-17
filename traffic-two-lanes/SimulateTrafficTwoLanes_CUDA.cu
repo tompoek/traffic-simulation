@@ -175,15 +175,15 @@ void resolveCollisionsCUDA(Car* cars) {
         myFrontIsSafe[carIdx] = int( (iAmTheFirstLeader[carIdx]) || (myLeaderCarDistance[carIdx] > 0) );
     }
     // ask if everyone feels safe in their front
-    extern __shared__ int ourFrontIsSafeDevice[];
-    ourFrontIsSafeDevice[thrIdx] = 1;
+    extern __shared__ int ourFrontIsSafe[];
+    ourFrontIsSafe[thrIdx] = 1;
     for (int carIdx = thrIdx; carIdx < NUM_CARS; carIdx += numThreads) {
-        ourFrontIsSafeDevice[thrIdx] *= myFrontIsSafe[carIdx];
+        ourFrontIsSafe[thrIdx] *= myFrontIsSafe[carIdx];
     }
     for (int i = numThreads/2; i > 0; i /= 2) {
         __syncthreads(); // must wait for all threads to reach here
         if (thrIdx < i) {
-            ourFrontIsSafeDevice[thrIdx] *= ourFrontIsSafeDevice[thrIdx + i] /*only thread 0 gets correct result*/;
+            ourFrontIsSafe[thrIdx] *= ourFrontIsSafe[thrIdx + i] /*only thread 0 gets correct result*/;
         }
     }
 
@@ -192,7 +192,7 @@ void resolveCollisionsCUDA(Car* cars) {
     numLoops = 0;
     //DEBUG >>>
     
-    while (!ourFrontIsSafeDevice[0] /*only thread 0 gets correct result*/) { // as long as anyone is unsafe in their front
+    while (!ourFrontIsSafe[0] /*only thread 0 gets correct result*/) { // as long as anyone is unsafe in their front
     //DEBUG >>>
     numLoops++;
     if (numLoops>=100) {if (thrIdx==0) {printf("Error: TOO MANY LOOPS! NUM LOOPs > %d\n", numLoops);} break;}
@@ -218,14 +218,14 @@ void resolveCollisionsCUDA(Car* cars) {
             myFrontIsSafe[carIdx] = int( (iAmTheFirstLeader[carIdx]) || (myLeaderCarDistance[carIdx] > 0) );
         }
         // ask if everyone feels safe in their front
-        ourFrontIsSafeDevice[thrIdx] = 1;
+        ourFrontIsSafe[thrIdx] = 1;
         for (int carIdx = thrIdx; carIdx < NUM_CARS; carIdx += numThreads) {
-            ourFrontIsSafeDevice[thrIdx] *= myFrontIsSafe[carIdx];
+            ourFrontIsSafe[thrIdx] *= myFrontIsSafe[carIdx];
         }
         for (int i = numThreads/2; i > 0; i /= 2) {
             __syncthreads(); // must wait for all threads to reach here
             if (thrIdx < i) {
-                ourFrontIsSafeDevice[thrIdx] *= ourFrontIsSafeDevice[thrIdx + i] /*only thread 0 gets correct result*/;
+                ourFrontIsSafe[thrIdx] *= ourFrontIsSafe[thrIdx + i] /*only thread 0 gets correct result*/;
             }
         }
     }
@@ -288,7 +288,7 @@ int main(int argc, char** argv) {
         // ALL CARS DRIVE FORWARD
         start_clock = std::chrono::high_resolution_clock::now();
         determineTargetPositionCUDA<<<1, NUM_THREADS>>>(carsDevice);
-        resolveCollisionsCUDA<<<1, NUM_THREADS, NUM_THREADS*sizeof(int) /*reserve for dynamically shared memory: ourFrontIsSafeDevice*/>>>(carsDevice);
+        resolveCollisionsCUDA<<<1, NUM_THREADS, NUM_THREADS*sizeof(int) /*reserve for dynamically shared memory: ourFrontIsSafe*/>>>(carsDevice);
         updateActualPositionCUDA<<<1, NUM_THREADS>>>(carsDevice);
         microsecs_allCarsDriveForward += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start_clock);
 
