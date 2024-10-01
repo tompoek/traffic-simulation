@@ -42,6 +42,6 @@ SimulateTrafficTwoLanes_thrust: SimulateTrafficTwoLanes_thrust.o utils.o
 
 # Clean up generated files
 clean:
-	rm -f $(OBJS) $(EXEC) $(RESULTS) $(PROF)
+	rm -f $(OBJS) $(EXEC) $(PROF)
 
 .PHONY: all clean
