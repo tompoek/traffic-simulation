@@ -1,11 +1,10 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-const int LANE_LENGTH = 2000;
 const int NUM_LANES = 2;
 const int RANDOM_SEED = 47;
-const int NUM_CARS = 3000;
-const int NUM_THREADS = 256; // must be exponential of 2
+const int LANE_LENGTH = 5000, NUM_CARS = 3000;
+const int NUM_THREADS = 8; // must be exponential of 2
 const int SPEED_LIMIT = 4;
 const int NUM_STEPS = 100;
 
@@ -21,6 +20,7 @@ struct Car {
 };
 
 extern Car* cars;
+extern Car* carsTemp;
 
 extern int* numCarsInLanes; // only used for init
 extern int* carIndicesInLanes; // only used for init

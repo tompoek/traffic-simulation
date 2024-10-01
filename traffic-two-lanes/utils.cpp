@@ -2,10 +2,12 @@
 #include <cstdio>
 #include <random>
 #include <algorithm>
+#include <set>
 
 #include "utils.h"
 
 Car* cars = static_cast<Car*>(malloc(sizeof(*cars) * NUM_CARS));
+Car* carsTemp = static_cast<Car*>(malloc(sizeof(*carsTemp) * NUM_CARS));
 
 int COUNT_LANE_CHANGE = 0; // for profiling number of successful lane changes
 int* numCarsInLanes = static_cast<int*>(malloc(sizeof(int) * 2)); // for two-lanes implementation
@@ -55,7 +57,7 @@ void initializeTrafficTwoLanes() {
             int followerLaneCarIdx = laneCarIdx - 1;
             int leaderLaneCarIdx = laneCarIdx + 1;
             int &carIdx = carIndicesInLanes[laneIdx*LANE_LENGTH + laneCarIdx];
-            int followerCarIdx = (followerLaneCarIdx > 0) ? carIndicesInLanes[laneIdx*LANE_LENGTH + followerLaneCarIdx] : -1; // -1: no follower
+            int followerCarIdx = (followerLaneCarIdx >= /* FIXED: >= instead of > */ 0) ? carIndicesInLanes[laneIdx*LANE_LENGTH + followerLaneCarIdx] : -1; // -1: no follower
             int leaderCarIdx = (leaderLaneCarIdx < numCarsInLanes[laneIdx]) ? carIndicesInLanes[laneIdx*LANE_LENGTH + leaderLaneCarIdx] : -1; // -1: no leader
             cars[carIdx].leaderCarIdx = leaderCarIdx;
             cars[carIdx].followerCarIdx = followerCarIdx;
@@ -66,9 +68,16 @@ void initializeTrafficTwoLanes() {
 }
 
 void printStep(FILE* &fid) {
+    std::set< std::pair<int, int> > lanePositionSet;
     for (int carIdx = 0; carIdx < NUM_CARS; ++carIdx) {
         if (carIdx>0) fprintf(fid, ",");
-        fprintf(fid, "%d,%d", cars[carIdx].laneIdx, (cars[carIdx].Position%LANE_LENGTH + LANE_LENGTH) % LANE_LENGTH);
+        int laneIdx = cars[carIdx].laneIdx;
+        int position = cars[carIdx].Position;
+        fprintf(fid, "%d,%d", laneIdx, (position % LANE_LENGTH + LANE_LENGTH) % LANE_LENGTH);
+        if (lanePositionSet.find({laneIdx, position}) != lanePositionSet.end()) {
+            printf("ERROR: Collision @Lane%d Position%d\n", laneIdx, position);
+        }
+        lanePositionSet.insert({laneIdx, position});
     }
     fprintf(fid, "\n");
 }

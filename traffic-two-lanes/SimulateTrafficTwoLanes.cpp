@@ -3,8 +3,39 @@
 #include <numeric>
 #include <algorithm>
 #include <cuda_runtime.h>
+#include <cstring>
 
 #include "utils.h"
+
+bool checkFirstLeaderLastFollower(int laneIdx) {
+    int* iAmThisLanesLastFollower = new int [NUM_CARS];
+    std::transform(cars, cars + NUM_CARS, iAmThisLanesLastFollower, [laneIdx](const Car& car) { return int(car.followerCarIdx == -1 && car.laneIdx == laneIdx); });
+    int lastFollowerCarIdx = std::distance(iAmThisLanesLastFollower, std::find(iAmThisLanesLastFollower, iAmThisLanesLastFollower + NUM_CARS, 1));
+    int countLastFollowers = std::accumulate(iAmThisLanesLastFollower, iAmThisLanesLastFollower + NUM_CARS, 0, std::plus<int>());
+    if (countLastFollowers > 1) {
+        int lastFollowerCarIdx2 = std::distance(iAmThisLanesLastFollower, std::find(iAmThisLanesLastFollower + lastFollowerCarIdx + 1, iAmThisLanesLastFollower + NUM_CARS, 1));
+        printf("ERROR: @Lane%d countLastFollowers = %d, lastFollowerCarIdx = %d, its Position = %d, another lastFollowerCarIdx = %d, its Position = %d\n", 
+                laneIdx, countLastFollowers, lastFollowerCarIdx, cars[lastFollowerCarIdx].Position, lastFollowerCarIdx2, cars[lastFollowerCarIdx2].Position);
+        return false;
+    } else if (countLastFollowers < 1) {
+        printf("ERROR: @Lane%d countLastFollowers = %d\n", laneIdx, countLastFollowers);
+        return false;
+    }
+    int* iAmThisLanesFirstLeader = new int [NUM_CARS];
+    std::transform(cars, cars + NUM_CARS, iAmThisLanesFirstLeader, [laneIdx](const Car& car) { return int(car.leaderCarIdx < 0 && car.laneIdx == laneIdx); });
+    int firstLeaderCarIdx = std::distance(iAmThisLanesFirstLeader, std::find(iAmThisLanesFirstLeader, iAmThisLanesFirstLeader + NUM_CARS, 1));
+    int countFirstLeaders = std::accumulate(iAmThisLanesFirstLeader, iAmThisLanesFirstLeader + NUM_CARS, 0, std::plus<int>());
+    if (countFirstLeaders > 1) {
+        int firstLeaderCarIdx2 = std::distance(iAmThisLanesFirstLeader, std::find(iAmThisLanesFirstLeader + firstLeaderCarIdx + 1, iAmThisLanesFirstLeader + NUM_CARS, 1));
+        printf("ERROR: @Lane%d countFirstLeaders = %d, firstLeaderCarIdx = %d, its Position = %d, another firstLeaderCarIdx = %d, its Position = %d\n", 
+                laneIdx, countFirstLeaders, firstLeaderCarIdx, cars[firstLeaderCarIdx].Position, firstLeaderCarIdx2, cars[firstLeaderCarIdx2].Position);
+        return false;
+    } else if (countFirstLeaders < 1) {
+        printf("ERROR: @Lane%d countFirstLeaders = %d\n", laneIdx, countFirstLeaders);
+        return false;
+    }
+    return true;
+}
 
 int main(int argc, char** argv) {
     // Measure runtime
@@ -31,6 +62,7 @@ int main(int argc, char** argv) {
         for (int carIdx = 0; carIdx < NUM_CARS; carIdx++) {
             cars[carIdx].TargetPosition = cars[carIdx].Position + cars[carIdx].TargetSpeed;
         }
+        /*copy cars values to carsTemp*/memcpy(carsTemp, cars, NUM_CARS*sizeof(*carsTemp));
         for (int carIdx = 0; carIdx < NUM_CARS; carIdx++) {
             // see if my front is safe
             int iAmTheFirstLeader;
@@ -67,17 +99,19 @@ int main(int argc, char** argv) {
                     }
                 }
                 // move myself to target lane
-                cars[cars[carIdx].leaderCarIdx].followerCarIdx = /*my follower becomes my leader car's follower.*/ cars[carIdx].followerCarIdx;
-                cars[cars[carIdx].followerCarIdx].leaderCarIdx = /*my leader becomes my follower car's leader.*/ cars[carIdx].leaderCarIdx;
-                cars[carIdx].laneIdx = (cars[carIdx].laneIdx + 1) % 2;
-                cars[carIdx].followerCarIdx = closestFollowerIdx;
-                cars[carIdx].leaderCarIdx = closestLeaderIdx;
-                if (closestLeaderIdx != -1) { cars[closestLeaderIdx].followerCarIdx = /*i become the closest leader car's follower.*/ carIdx; }
-                if (closestFollowerIdx != -1) { cars[closestFollowerIdx].leaderCarIdx = /*i become the closest follower car's leader.*/ carIdx; }
+                carsTemp[cars[carIdx].leaderCarIdx].followerCarIdx = /*my follower becomes my leader car's follower.*/ cars[carIdx].followerCarIdx;
+                carsTemp[cars[carIdx].followerCarIdx].leaderCarIdx = /*my leader becomes my follower car's leader.*/ cars[carIdx].leaderCarIdx;
+                carsTemp[carIdx].laneIdx = (cars[carIdx].laneIdx + 1) % 2;
+                carsTemp[carIdx].followerCarIdx = closestFollowerIdx;
+                carsTemp[carIdx].leaderCarIdx = closestLeaderIdx;
+                if (closestLeaderIdx != -1) { carsTemp[closestLeaderIdx].followerCarIdx = /*i become the closest leader car's follower.*/ carIdx; }
+                if (closestFollowerIdx != -1) { carsTemp[closestFollowerIdx].leaderCarIdx = /*i become the closest follower car's leader.*/ carIdx; }
 
                 COUNT_LANE_CHANGE++; // for debug
+                /*DEBUG*/printf("Car[%d] just changed from Lane%d to Lane%d\n", carIdx, cars[carIdx].laneIdx, carsTemp[carIdx].laneIdx);
             }
         }
+        /*copy carsTemp values back to cars*/std::swap(cars, carsTemp);
         microsecs_allCarsTryLaneChange += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start_clock);
 
         // ALL CARS DRIVE FORWARD
@@ -86,29 +120,50 @@ int main(int argc, char** argv) {
         for (int carIdx = 0; carIdx < NUM_CARS; carIdx++) {
             cars[carIdx].TargetPosition = cars[carIdx].Position + cars[carIdx].TargetSpeed;
         }
-        // see if my front is safe
-        int* iAmTheFirstLeader = new int [NUM_CARS];
-        int* myLeaderCarDistance = new int [NUM_CARS];
-        int* myFrontIsSafe = new int [NUM_CARS];
-        std::transform(cars, cars + NUM_CARS, iAmTheFirstLeader, [](const Car& car) { return int(car.leaderCarIdx < 0); });
-        std::transform(cars, cars + NUM_CARS, iAmTheFirstLeader, myLeaderCarDistance, [](const Car& car, const int& isFirstLeader) { return isFirstLeader ? INT_MAX : cars[car.leaderCarIdx].TargetPosition - car.TargetPosition; });
-        std::transform(myLeaderCarDistance, myLeaderCarDistance + NUM_CARS, iAmTheFirstLeader, myFrontIsSafe, [](const int& distance, const int& isFirstLeader) { return int( isFirstLeader || (distance > 0) ); });
-        int ourFrontIsSafe;
-        // ask if everyone feels safe in their front
-        ourFrontIsSafe = std::accumulate(myFrontIsSafe, myFrontIsSafe + NUM_CARS, 1, std::multiplies<int>());
-        while (!ourFrontIsSafe) { // as long as anyone is unsafe in their front
-            // update target position
-            for (int carIdx = 0; carIdx < NUM_CARS; carIdx++) {
-                cars[carIdx].TargetPosition = (!myFrontIsSafe[carIdx])/*if unsafe*/ * (cars[cars[carIdx].leaderCarIdx].TargetPosition - 1)/*a distance behind my leader car*/ + 
-                                                (myFrontIsSafe[carIdx])/*if safe*/ * (cars[carIdx].TargetPosition)/*maintain my target position*/;
+
+        // resolve collisions if any
+        for (int laneIdx = 0; laneIdx < 2; laneIdx++) {
+            /*DEBUG*/ bool checked = checkFirstLeaderLastFollower(laneIdx); if (!checked) return -1;
+            // find the first leader car index
+            int* iAmThisLanesFirstLeader = new int [NUM_CARS];
+            std::transform(cars, cars + NUM_CARS, iAmThisLanesFirstLeader, [laneIdx](const Car& car) { return int(car.leaderCarIdx < 0 && car.laneIdx == laneIdx); });
+            int leaderCarIdx = std::distance(iAmThisLanesFirstLeader, std::find(iAmThisLanesFirstLeader, iAmThisLanesFirstLeader + NUM_CARS, 1));
+            int followerCarIdx = cars[leaderCarIdx].followerCarIdx;
+            while (followerCarIdx != -1 /*from the first leader to the last follower*/) {
+                if (cars[followerCarIdx].TargetPosition >= cars[leaderCarIdx].TargetPosition /*my follower would hit me*/) {
+                    cars[followerCarIdx].TargetPosition = cars[leaderCarIdx].TargetPosition - 1/*tell them to move a distance behind me*/;
+                    /*DEBUG*/printf("@Lane%d: Car %d tells Car %d to move back to %d.\n", laneIdx, leaderCarIdx, followerCarIdx, cars[followerCarIdx].TargetPosition);
+                }
+                leaderCarIdx = followerCarIdx;
+                followerCarIdx = cars[leaderCarIdx].followerCarIdx;
             }
-            // see if my front is safe now
-            std::transform(cars, cars + NUM_CARS, iAmTheFirstLeader, [](const Car& car) { return int(car.leaderCarIdx < 0); });
-            std::transform(cars, cars + NUM_CARS, iAmTheFirstLeader, myLeaderCarDistance, [](const Car& car, const int& isFirstLeader) { return isFirstLeader ? INT_MAX : cars[car.leaderCarIdx].TargetPosition - car.TargetPosition; });
-            std::transform(myLeaderCarDistance, myLeaderCarDistance + NUM_CARS, iAmTheFirstLeader, myFrontIsSafe, [](const int& distance, const int& isFirstLeader) { return int( isFirstLeader || (distance > 0) ); });
-            // ask if everyone feels safe in their front
-            ourFrontIsSafe = std::accumulate(myFrontIsSafe, myFrontIsSafe + NUM_CARS, 1, std::multiplies<int>());
         }
+
+        // // see if my front is safe
+        // int* iAmTheFirstLeader = new int [NUM_CARS];
+        // int* myLeaderCarDistance = new int [NUM_CARS];
+        // int* myFrontIsSafe = new int [NUM_CARS];
+        // std::transform(cars, cars + NUM_CARS, iAmTheFirstLeader, [](const Car& car) { return int(car.leaderCarIdx < 0); });
+        // std::transform(cars, cars + NUM_CARS, iAmTheFirstLeader, myLeaderCarDistance, [](const Car& car, const int& isFirstLeader) { return isFirstLeader ? INT_MAX : cars[car.leaderCarIdx].TargetPosition - car.TargetPosition; });
+        // std::transform(myLeaderCarDistance, myLeaderCarDistance + NUM_CARS, iAmTheFirstLeader, myFrontIsSafe, [](const int& distance, const int& isFirstLeader) { return int( isFirstLeader || (distance > 0) ); });
+        // int ourFrontIsSafe;
+        // // ask if everyone feels safe in their front
+        // ourFrontIsSafe = std::accumulate(myFrontIsSafe, myFrontIsSafe + NUM_CARS, 1, std::multiplies<int>());
+        // while (!ourFrontIsSafe) { // as long as anyone is unsafe in their front
+        //     // update target position
+        //     for (int carIdx = 0; carIdx < NUM_CARS; carIdx++) {
+        //         cars[carIdx].TargetPosition = (!myFrontIsSafe[carIdx])/*if unsafe*/ * (cars[cars[carIdx].leaderCarIdx].TargetPosition - 1)/*a distance behind my leader car*/ + 
+        //                                         (myFrontIsSafe[carIdx])/*if safe*/ * (cars[carIdx].TargetPosition)/*maintain my target position*/;
+        //     }
+        //     // see if my front is safe now
+        //     std::transform(cars, cars + NUM_CARS, iAmTheFirstLeader, [](const Car& car) { return int(car.leaderCarIdx < 0); });
+        //     std::transform(cars, cars + NUM_CARS, iAmTheFirstLeader, myLeaderCarDistance, [](const Car& car, const int& isFirstLeader) { return isFirstLeader ? INT_MAX : cars[car.leaderCarIdx].TargetPosition - car.TargetPosition; });
+        //     std::transform(myLeaderCarDistance, myLeaderCarDistance + NUM_CARS, iAmTheFirstLeader, myFrontIsSafe, [](const int& distance, const int& isFirstLeader) { return int( isFirstLeader || (distance > 0) ); });
+        //     // ask if everyone feels safe in their front
+        //     ourFrontIsSafe = std::accumulate(myFrontIsSafe, myFrontIsSafe + NUM_CARS, 1, std::multiplies<int>());
+        // }
+
+
         // update actual position
         for (int carIdx = 0; carIdx < NUM_CARS; carIdx++) {
             cars[carIdx].Position = cars[carIdx].TargetPosition;
