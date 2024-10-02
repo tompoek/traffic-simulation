@@ -29,4 +29,6 @@ void initializeTrafficTwoLanes();
 
 void printStep(FILE* &fid);
 
+bool checkFirstLeaderLastFollower(int laneIdx);
+
 #endif
