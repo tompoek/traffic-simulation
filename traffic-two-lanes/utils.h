@@ -3,7 +3,7 @@
 
 const int NUM_LANES = 2;
 const int RANDOM_SEED = 47;
-const int LANE_LENGTH = 5000, NUM_CARS = 3000;
+const int LANE_LENGTH = 4000, NUM_CARS = 3000;
 const int NUM_THREADS = 8; // must be exponential of 2
 const int SPEED_LIMIT = 4;
 const int NUM_STEPS = 100;
