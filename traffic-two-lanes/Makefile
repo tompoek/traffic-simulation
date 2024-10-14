@@ -6,7 +6,7 @@ NVCC = nvcc
 # Compiler flags
 CXXFLAGS = -Wall -pg -O2
 # CXXFLAGS = -Wall -pg -O2 -fopenmp
-NVFLAGS = -g --gpu-architecture=sm_35 -Wno-deprecated-gpu-targets -O2
+NVFLAGS = -g --gpu-architecture=sm_35 -Wno-deprecated-gpu-targets -lineinfo -O2
 
 # Source files
 SRCS = SimulateTrafficTwoLanes.cpp utils.cpp
