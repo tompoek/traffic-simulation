@@ -105,18 +105,23 @@ int main(int argc, char** argv) {
             int* iAmThisLanesFirstLeader = new int [NUM_CARS];
             std::transform(cars, cars + NUM_CARS, iAmThisLanesFirstLeader, [laneIdx](const Car& car) { return int(car.leaderCarIdx < 0 && car.laneIdx == laneIdx); });
             int leaderCarIdx = std::distance(iAmThisLanesFirstLeader, std::find(iAmThisLanesFirstLeader, iAmThisLanesFirstLeader + NUM_CARS, 1));
-            int followerCarIdx = cars[leaderCarIdx].followerCarIdx;
-            int* iAmAtCurrentLane = new int [NUM_CARS];
-            std::transform(cars, cars + NUM_CARS, iAmAtCurrentLane, [laneIdx](const Car& car) { return int(car.laneIdx == laneIdx); });
-            int numCarsAtCurrentLane = std::accumulate(iAmAtCurrentLane, iAmAtCurrentLane + NUM_CARS, 0, std::plus<int>());
-            for (int laneCarIdx = 0; laneCarIdx < numCarsAtCurrentLane; laneCarIdx++) {
-                if (followerCarIdx == -1) break;
-                if (cars[followerCarIdx].TargetPosition >= cars[leaderCarIdx].TargetPosition /*my follower would hit me*/) {
-                    cars[followerCarIdx].TargetPosition = cars[leaderCarIdx].TargetPosition - 1/*tell them to move a distance behind me*/;
-                    // /*DEBUG*/printf("@Lane%d: Car %d tells Car %d to move back to %d.\n", laneIdx, leaderCarIdx, followerCarIdx, cars[followerCarIdx].TargetPosition);
+            if (leaderCarIdx != -1) {
+                int followerCarIdx = cars[leaderCarIdx].followerCarIdx;
+                int* iAmAtCurrentLane = new int [NUM_CARS];
+                std::transform(cars, cars + NUM_CARS, iAmAtCurrentLane, [laneIdx](const Car& car) { return int(car.laneIdx == laneIdx); });
+                int numCarsAtCurrentLane = std::accumulate(iAmAtCurrentLane, iAmAtCurrentLane + NUM_CARS, 0, std::plus<int>());
+                for (int laneCarIdx = 0; laneCarIdx < numCarsAtCurrentLane; laneCarIdx++) {
+                    if (followerCarIdx == -1) break;
+                    if (cars[followerCarIdx].TargetPosition >= cars[leaderCarIdx].TargetPosition /*my follower would hit me*/) {
+                        cars[followerCarIdx].TargetPosition = cars[leaderCarIdx].TargetPosition - 1/*tell them to move a distance behind me*/;
+                        // /*DEBUG*/printf("@Lane%d: Car %d tells Car %d to move back to %d.\n", laneIdx, leaderCarIdx, followerCarIdx, cars[followerCarIdx].TargetPosition);
+                    }
+                    leaderCarIdx = followerCarIdx;
+                    followerCarIdx = cars[leaderCarIdx].followerCarIdx;
                 }
-                leaderCarIdx = followerCarIdx;
-                followerCarIdx = cars[leaderCarIdx].followerCarIdx;
+            } else {
+                printf("ERROR: No leader car found @Lane%d\n", laneIdx);
+                return -1;
             }
         }
 
