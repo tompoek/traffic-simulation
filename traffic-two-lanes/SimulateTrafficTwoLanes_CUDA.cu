@@ -286,7 +286,7 @@ int main(int argc, char** argv) {
         //     eachCarTryLaneChangeCUDA<<<1, NUM_THREADS>>>(carsDevice, carIdxDevice, countLaneChangeDevice);
         // }
         tryLaneChangeCUDA<<<1, NUM_THREADS>>>(carsDevice, countLaneChangeDevice) /*Approach 2: Thread outer loop*/;
-        // tryLaneChangeCUDA<<<16, NUM_THREADS>>>(carsDevice, countLaneChangeDevice) /*Approach 2: Thread outer loop*/;
+        // tryLaneChangeCUDA<<<NUM_BLOCKS, NUM_THREADS>>>(carsDevice, countLaneChangeDevice) /*Approach 2: Thread outer loop*/;
         // checkError(cudaMemcpy(carsTempDevice, carsDevice, NUM_CARS*sizeof(*carsTempDevice), cudaMemcpyDeviceToDevice));
         // tryLaneChangeWithCarsTempCUDA<<<1, NUM_THREADS>>>(carsDevice, carsTempDevice, countLaneChangeDevice);
         // std::swap(carsDevice, carsTempDevice);
