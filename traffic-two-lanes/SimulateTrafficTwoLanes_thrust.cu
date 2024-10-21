@@ -30,7 +30,7 @@ void printStepThrustHost(FILE* &fid, thrust::host_vector<Car> &carsHost) {
 }
 
 struct DetermineTargetPosition {
-    __host__ __device__ void operator()(Car &car) {
+    __device__ void operator()(Car &car) {
         car.TargetPosition = car.Position + car.TargetSpeed;
     }
 };
@@ -92,23 +92,9 @@ void tryLaneChangeCUDA(Car* cars, int* countLaneChange) {
 }
 
 struct UpdateActualPosition {
-    __host__ __device__ void operator()(Car &car) {
+    __device__ void operator()(Car &car) {
         car.Position = car.TargetPosition;
         // car.TargetSpeed = /*randomly change target speed to increase traffic dynamics.*/ (curand(&state)%SPEED_LIMIT) + 1;
-    }
-};
-
-struct IsThisLanesFirstLeader {
-    int laneIdx;
-    __host__ __device__ int operator()(const Car& car) const {
-        return int(car.leaderCarIdx < 0 && car.laneIdx == laneIdx);
-    }
-};
-
-struct IsAtCurrentLane {
-    int laneIdx;
-    __host__ __device__ int operator()(const Car& car) const {
-        return int(car.laneIdx == laneIdx);
     }
 };
 
