@@ -75,7 +75,7 @@ void printStep(FILE* &fid) {
         int position = cars[carIdx].Position;
         fprintf(fid, "%d,%d", laneIdx, (position % LANE_LENGTH + LANE_LENGTH) % LANE_LENGTH);
         if (lanePositionSet.find({laneIdx, position}) != lanePositionSet.end()) {
-            printf("ERROR: Collision @Lane%d Position%d\n", laneIdx, position);
+            // printf("ERROR: Collision @Lane%d Position%d\n", laneIdx, position);
         }
         lanePositionSet.insert({laneIdx, position});
     }
