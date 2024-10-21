@@ -32,7 +32,6 @@ int main(int argc, char** argv) {
         for (int carIdx = 0; carIdx < NUM_CARS; carIdx++) {
             cars[carIdx].TargetPosition = cars[carIdx].Position + cars[carIdx].TargetSpeed;
         }
-        // /*copy cars values to carsTemp*/memcpy(carsTemp, cars, NUM_CARS*sizeof(*carsTemp));
         for (int carIdx = 0; carIdx < NUM_CARS; carIdx++) {
             // see if my front is safe
             int iAmTheFirstLeader;
@@ -69,13 +68,6 @@ int main(int argc, char** argv) {
                     }
                 }
                 // move myself to target lane
-                // carsTemp[cars[carIdx].leaderCarIdx].followerCarIdx = /*my follower becomes my leader car's follower.*/ cars[carIdx].followerCarIdx;
-                // carsTemp[cars[carIdx].followerCarIdx].leaderCarIdx = /*my leader becomes my follower car's leader.*/ cars[carIdx].leaderCarIdx;
-                // carsTemp[carIdx].laneIdx = (cars[carIdx].laneIdx + 1) % 2;
-                // carsTemp[carIdx].followerCarIdx = closestFollowerIdx;
-                // carsTemp[carIdx].leaderCarIdx = closestLeaderIdx;
-                // if (closestLeaderIdx != -1) { carsTemp[closestLeaderIdx].followerCarIdx = /*i become the closest leader car's follower.*/ carIdx; }
-                // if (closestFollowerIdx != -1) { carsTemp[closestFollowerIdx].leaderCarIdx = /*i become the closest follower car's leader.*/ carIdx; }
                 cars[cars[carIdx].leaderCarIdx].followerCarIdx = /*my follower becomes my leader car's follower.*/ cars[carIdx].followerCarIdx;
                 cars[cars[carIdx].followerCarIdx].leaderCarIdx = /*my leader becomes my follower car's leader.*/ cars[carIdx].leaderCarIdx;
                 cars[carIdx].laneIdx = (cars[carIdx].laneIdx + 1) % 2;
@@ -85,10 +77,8 @@ int main(int argc, char** argv) {
                 if (closestFollowerIdx != -1) { cars[closestFollowerIdx].leaderCarIdx = /*i become the closest follower car's leader.*/ carIdx; }
 
                 COUNT_LANE_CHANGE++; // for debug
-                // /*DEBUG*/printf("Car[%d] just changed from Lane%d to Lane%d\n", carIdx, cars[carIdx].laneIdx, carsTemp[carIdx].laneIdx);
             }
         }
-        // /*copy carsTemp values back to cars*/std::swap(cars, carsTemp);
         microsecs_allCarsTryLaneChange += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start_clock);
 
         // ALL CARS DRIVE FORWARD
