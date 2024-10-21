@@ -164,7 +164,6 @@ int main(int argc, char** argv) {
 
         // ALL CARS DRIVE FORWARD
         start_clock = std::chrono::high_resolution_clock::now();
-        thrust::for_each(carsDevice.begin(), carsDevice.end(), DetermineTargetPosition());
         // resolve collisions if any
         resolveCollisionsThreadLanesCUDA<<<1, 2>>>(thrust::raw_pointer_cast(carsDevice.data()));
         // update actual position

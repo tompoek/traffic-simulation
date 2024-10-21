@@ -294,7 +294,6 @@ int main(int argc, char** argv) {
         
         // ALL CARS DRIVE FORWARD
         start_clock = std::chrono::high_resolution_clock::now();
-        determineTargetPositionCUDA<<<1, NUM_THREADS>>>(carsDevice);
         resolveCollisionsThreadLanesCUDA<<<1, 2>>>(carsDevice);
         //TODO idea: resolveCollisionsTwoBlocksCUDA<<<2, NUM_THREADS>>>(carsDevice);
         updateActualPositionCUDA<<<1, NUM_THREADS>>>(carsDevice);

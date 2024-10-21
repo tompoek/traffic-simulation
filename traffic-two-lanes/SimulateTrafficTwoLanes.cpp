@@ -83,11 +83,6 @@ int main(int argc, char** argv) {
 
         // ALL CARS DRIVE FORWARD
         start_clock = std::chrono::high_resolution_clock::now();
-        // determine target position
-        for (int carIdx = 0; carIdx < NUM_CARS; carIdx++) {
-            cars[carIdx].TargetPosition = cars[carIdx].Position + cars[carIdx].TargetSpeed;
-        }
-
         // resolve collisions if any
         for (int laneIdx = 0; laneIdx < 2; laneIdx++) {
             // /*DEBUG*/ bool checked = checkFirstLeaderLastFollower(laneIdx); if (!checked) return -1;
