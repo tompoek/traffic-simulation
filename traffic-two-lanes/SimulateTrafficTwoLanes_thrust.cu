@@ -145,9 +145,7 @@ int main(int argc, char** argv) {
     initializeTrafficTwoLanes();
     std::copy(cars, cars + NUM_CARS, carsHost.begin());
     carsDevice = carsHost;
-    int* countLaneChangeDevice;
-    checkError(cudaMalloc(&countLaneChangeDevice, sizeof(*countLaneChangeDevice)));
-    checkError(cudaMemcpy(countLaneChangeDevice, &COUNT_LANE_CHANGE, sizeof(*countLaneChangeDevice), cudaMemcpyHostToDevice));
+    thrust::device_vector<int> countLaneChangeDevice(1, 0);
     free(numCarsInLanes); // only for init
     free(carIndicesInLanes); // only for init
     printStepThrustHost(fid, carsHost); // comment out when profiling
@@ -159,28 +157,24 @@ int main(int argc, char** argv) {
         // ALL CARS TRY LANE CHANGE
         start_clock = std::chrono::high_resolution_clock::now();
         thrust::for_each(carsDevice.begin(), carsDevice.end(), DetermineTargetPosition());
-        tryLaneChangeCUDA<<<1, NUM_THREADS>>>(thrust::raw_pointer_cast(carsDevice.data()), countLaneChangeDevice);
+        tryLaneChangeCUDA<<<1, NUM_THREADS>>>(thrust::raw_pointer_cast(carsDevice.data()), thrust::raw_pointer_cast(countLaneChangeDevice.data()));
         microsecs_allCarsTryLaneChange += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start_clock);
 
         // ALL CARS DRIVE FORWARD
         start_clock = std::chrono::high_resolution_clock::now();
-        // resolve collisions if any
         resolveCollisionsThreadLanesCUDA<<<1, 2>>>(thrust::raw_pointer_cast(carsDevice.data()));
-        // update actual position
         thrust::for_each(carsDevice.begin(), carsDevice.end(), UpdateActualPosition());
         microsecs_allCarsDriveForward += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start_clock);
 
         carsHost = carsDevice; // comment out when profiling
         printStepThrustHost(fid, carsHost); // comment out when profiling
     }
-    checkError(cudaMemcpy(&COUNT_LANE_CHANGE, countLaneChangeDevice, sizeof(*countLaneChangeDevice), cudaMemcpyDeviceToHost));
+    thrust::copy(countLaneChangeDevice.begin(), countLaneChangeDevice.end(), &COUNT_LANE_CHANGE);
     printf("Num Steps: %d, Num Lanes: %d, Num Cars: %d\n", NUM_STEPS, NUM_LANES, NUM_CARS);
     printf("Num of successful lane changes = %d\n", COUNT_LANE_CHANGE);
     printf("Cumulative microseconds of allCarsTryLaneChange = %ld us\n", microsecs_allCarsTryLaneChange.count());
     printf("Cumulative microseconds of allCarsDriveForward = %ld us\n", microsecs_allCarsDriveForward.count());
 
-
-    checkError(cudaFree(countLaneChangeDevice));
     free(cars);
 
 
