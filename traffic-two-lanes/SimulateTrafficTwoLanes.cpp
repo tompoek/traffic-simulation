@@ -2,7 +2,7 @@
 #include <chrono>
 #include <numeric>
 #include <algorithm>
-#include <cuda_runtime.h>
+#include <climits>
 #include <cstring>
 
 #include "utils.h"
