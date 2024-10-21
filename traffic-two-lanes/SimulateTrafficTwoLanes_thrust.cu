@@ -9,6 +9,15 @@
 
 #include "utils.h"
 
+void checkError(cudaError_t e)
+{
+   if (e != cudaSuccess)
+   {
+      std::cerr << "CUDA error: " << int(e) << " : " << cudaGetErrorString(e) << '\n';
+      abort();
+   }
+}
+
 __host__
 void printStepThrustHost(FILE* &fid, thrust::host_vector<Car> &carsHost) {
     for (int carIdx = 0; carIdx < NUM_CARS; ++carIdx) {
@@ -25,6 +34,62 @@ struct DetermineTargetPosition {
         car.TargetPosition = car.Position + car.TargetSpeed;
     }
 };
+
+__global__ 
+void tryLaneChangeCUDA(Car* cars, int* countLaneChange) {
+    int thrIdx = blockDim.x * blockIdx.x + threadIdx.x;
+    int numThreads = gridDim.x * blockDim.x;
+    for (int carIdx = thrIdx; carIdx < NUM_CARS; carIdx += numThreads) {
+        // see if my front is safe
+        int iAmTheFirstLeader;
+        iAmTheFirstLeader = int(cars[carIdx].leaderCarIdx == -1);
+        __shared__ /*per block shared memory*/ int weAreAtTheSameLane[NUM_CARS];
+        for (int carIdx2 = 0; carIdx2 < NUM_CARS; carIdx2++) {
+            weAreAtTheSameLane[carIdx2] = int(cars[carIdx2].laneIdx == cars[carIdx].laneIdx);
+        }
+        int myFrontIsSafe;
+        myFrontIsSafe = (iAmTheFirstLeader) ? 1 : int( 
+                cars[cars[carIdx].leaderCarIdx].TargetPosition - cars[carIdx].TargetPosition > 0 );
+        // see if i can change lane
+        __shared__ int distanceToMe[NUM_CARS];
+        for (int carIdx2 = 0; carIdx2 < NUM_CARS; carIdx2++) {
+            distanceToMe[carIdx2] = cars[carIdx2].Position - cars[carIdx].Position;
+        }
+        __shared__ int safeToMoveHere[NUM_CARS];
+        for (int carIdx2 = 0; carIdx2 < NUM_CARS; carIdx2++) {
+            safeToMoveHere[carIdx2] = int(weAreAtTheSameLane[carIdx2] || (distanceToMe[carIdx2]!=0));
+        }
+        int safeToChangeLane = 1; //TODO: optimize reduction
+        for (int carIdx2 = 0; carIdx2 < NUM_CARS; carIdx2++) {
+            safeToChangeLane *= safeToMoveHere[carIdx2];
+        }
+        // if my front is not safe and it's safe to change lane
+        if (!myFrontIsSafe && safeToChangeLane) {
+            // find my closest leader car and follower car in target lane
+            int closestFollowerDistance = INT_MIN; int closestLeaderDistance = INT_MAX; int closestFollowerIdx = -1; int closestLeaderIdx = -1;
+            for (int carIdx2 = 0; carIdx2 < NUM_CARS; carIdx2++) {
+                int iAmBehindYou = int( distanceToMe[carIdx2] < 0 );
+                int iAmAheadOfYou = int( distanceToMe[carIdx2] > 0 );
+                if (!weAreAtTheSameLane[carIdx2] && iAmBehindYou && distanceToMe[carIdx2] > closestFollowerDistance) {
+                    closestFollowerDistance = distanceToMe[carIdx2];
+                    closestFollowerIdx = carIdx2;
+                } else if (!weAreAtTheSameLane[carIdx2] && iAmAheadOfYou && distanceToMe[carIdx2] < closestLeaderDistance) {
+                    closestLeaderDistance = distanceToMe[carIdx2];
+                    closestLeaderIdx = carIdx2;
+                }
+            }
+            // move myself to target lane
+            cars[cars[carIdx].leaderCarIdx].followerCarIdx = /*my follower becomes my leader car's follower.*/ cars[carIdx].followerCarIdx;
+            cars[cars[carIdx].followerCarIdx].leaderCarIdx = /*my leader becomes my follower car's leader.*/ cars[carIdx].leaderCarIdx;
+            cars[carIdx].laneIdx = (cars[carIdx].laneIdx + 1) % 2;
+            cars[carIdx].followerCarIdx = closestFollowerIdx;
+            cars[carIdx].leaderCarIdx = closestLeaderIdx;
+            if (closestLeaderIdx != -1) { cars[closestLeaderIdx].followerCarIdx = /*i become the closest leader car's follower.*/ carIdx; }
+            if (closestFollowerIdx != -1) { cars[closestFollowerIdx].leaderCarIdx = /*i become the closest follower car's leader.*/ carIdx; }
+            countLaneChange[0]++; // for debug
+        }
+    }
+}
 
 struct UpdateActualPosition {
     __host__ __device__ void operator()(Car &car) {
@@ -94,65 +159,43 @@ int main(int argc, char** argv) {
     initializeTrafficTwoLanes();
     std::copy(cars, cars + NUM_CARS, carsHost.begin());
     carsDevice = carsHost;
+    int* countLaneChangeDevice;
+    checkError(cudaMalloc(&countLaneChangeDevice, sizeof(*countLaneChangeDevice)));
+    checkError(cudaMemcpy(countLaneChangeDevice, &COUNT_LANE_CHANGE, sizeof(*countLaneChangeDevice), cudaMemcpyHostToDevice));
     free(numCarsInLanes); // only for init
     free(carIndicesInLanes); // only for init
     printStepThrustHost(fid, carsHost); // comment out when profiling
 
     // Simulation loop
     for (int step=0; step<NUM_STEPS; ++step) {
-        printf("@ Step %d\n", step);
+        // printf("@ Step %d\n", step);
 
         // ALL CARS TRY LANE CHANGE
         start_clock = std::chrono::high_resolution_clock::now();
-        //TODO
         thrust::for_each(carsDevice.begin(), carsDevice.end(), DetermineTargetPosition());
+        tryLaneChangeCUDA<<<1, NUM_THREADS>>>(thrust::raw_pointer_cast(carsDevice.data()), countLaneChangeDevice);
         microsecs_allCarsTryLaneChange += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start_clock);
 
         // ALL CARS DRIVE FORWARD
         start_clock = std::chrono::high_resolution_clock::now();
-        //TODO
-        
+        thrust::for_each(carsDevice.begin(), carsDevice.end(), DetermineTargetPosition());
         // resolve collisions if any
-        // <<<<<< SEGMENTATION FAULT >>>>>>
-        // for (int laneIdx = 0; laneIdx < 2; laneIdx++) {
-        //     int leaderCarIdx = thrust::distance(carsDevice.begin(), thrust::find_if(carsDevice.begin(), carsDevice.end(), IsThisLanesFirstLeader{laneIdx}));
-        //     if (leaderCarIdx < NUM_CARS /*if no leader car found, thrust::find_if would return NUM_CARS*/) {
-        //         Car* carsDeviceRawPtr = thrust::raw_pointer_cast(carsDevice.data());
-        //         int followerCarIdx = carsDeviceRawPtr[leaderCarIdx].followerCarIdx;
-        //         thrust::device_vector<int> iAmAtCurrentLane(NUM_CARS);
-        //         thrust::transform(carsDevice.begin(), carsDevice.end(), iAmAtCurrentLane.begin(), IsAtCurrentLane{laneIdx});
-        //         int numCarsAtCurrentLane = thrust::reduce(iAmAtCurrentLane.begin(), iAmAtCurrentLane.end(), 0, thrust::plus<int>());
-        //         //TODO: Fix segmentation fault in for loop below.
-        //         // for (int laneCarIdx = 0; laneCarIdx < numCarsAtCurrentLane; laneCarIdx++) {
-        //         //     if (followerCarIdx == -1) break;
-        //         //     if (carsDeviceRawPtr[followerCarIdx].TargetPosition >= carsDeviceRawPtr[leaderCarIdx].TargetPosition /*my follower would hit me*/) {
-        //         //         carsDeviceRawPtr[followerCarIdx].TargetPosition = carsDeviceRawPtr[leaderCarIdx].TargetPosition - 1/*tell them to move a distance behind me*/;
-        //         //     }
-        //         //     leaderCarIdx = followerCarIdx;
-        //         //     followerCarIdx = carsDeviceRawPtr[leaderCarIdx].followerCarIdx;
-        //         // }
-        //     } else {
-        //         printf("ERROR: No leader car found @Lane%d\n", laneIdx);
-        //         return;
-        //     }
-        // }
-        // <<<<<< SEGMENTATION FAULT >>>>>>
         resolveCollisionsThreadLanesCUDA<<<1, 2>>>(thrust::raw_pointer_cast(carsDevice.data()));
-
         // update actual position
         thrust::for_each(carsDevice.begin(), carsDevice.end(), UpdateActualPosition());
         microsecs_allCarsDriveForward += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start_clock);
 
-
         carsHost = carsDevice; // comment out when profiling
         printStepThrustHost(fid, carsHost); // comment out when profiling
     }
+    checkError(cudaMemcpy(&COUNT_LANE_CHANGE, countLaneChangeDevice, sizeof(*countLaneChangeDevice), cudaMemcpyDeviceToHost));
     printf("Num Steps: %d, Num Lanes: %d, Num Cars: %d\n", NUM_STEPS, NUM_LANES, NUM_CARS);
     printf("Num of successful lane changes = %d\n", COUNT_LANE_CHANGE);
     printf("Cumulative microseconds of allCarsTryLaneChange = %ld us\n", microsecs_allCarsTryLaneChange.count());
     printf("Cumulative microseconds of allCarsDriveForward = %ld us\n", microsecs_allCarsDriveForward.count());
 
 
+    checkError(cudaFree(countLaneChangeDevice));
     free(cars);
 
 

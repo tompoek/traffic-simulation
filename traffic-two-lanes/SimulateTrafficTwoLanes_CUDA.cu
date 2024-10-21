@@ -276,7 +276,7 @@ int main(int argc, char** argv) {
 
     // Simulation loop
     for (int step=0; step<NUM_STEPS; ++step) {
-        printf("@ Step %d\n", step);
+        // printf("@ Step %d\n", step);
 
         // ALL CARS TRY LANE CHANGE
         start_clock = std::chrono::high_resolution_clock::now();
