@@ -15,8 +15,8 @@ void checkError(cudaError_t e)
 
 __global__ 
 void determineTargetPositionCUDA(Car* cars) {
-    int thrIdx = threadIdx.x;
-    int numThreads = blockDim.x;
+    int thrIdx = blockDim.x * blockIdx.x + threadIdx.x;
+    int numThreads = gridDim.x * blockDim.x;
     for (int carIdx = thrIdx; carIdx < NUM_CARS; carIdx += numThreads) {
         cars[carIdx].TargetPosition = cars[carIdx].Position + cars[carIdx].TargetSpeed;
     }
@@ -88,8 +88,8 @@ void eachCarTryLaneChangeCUDA(Car* cars, int* carIdxDevice, int* countLaneChange
 
 __global__ 
 void tryLaneChangeCUDA(Car* cars, int* countLaneChange) {
-    int thrIdx = threadIdx.x;
-    int numThreads = blockDim.x;
+    int thrIdx = blockDim.x * blockIdx.x + threadIdx.x;
+    int numThreads = gridDim.x * blockDim.x;
     for (int carIdx = thrIdx; carIdx < NUM_CARS; carIdx += numThreads) {
         // see if my front is safe
         int iAmTheFirstLeader;
@@ -234,8 +234,8 @@ void resolveCollisionsThreadLanesCUDA(Car* cars) {
 
 __global__ 
 void updateActualPositionCUDA(Car* cars) {
-    int thrIdx = threadIdx.x;
-    int numThreads = blockDim.x;
+    int thrIdx = blockDim.x * blockIdx.x + threadIdx.x;
+    int numThreads = gridDim.x * blockDim.x;
     for (int carIdx = thrIdx; carIdx < NUM_CARS; carIdx += numThreads) {
         cars[carIdx].Position = cars[carIdx].TargetPosition;
         // curandState state;
@@ -286,6 +286,7 @@ int main(int argc, char** argv) {
         //     eachCarTryLaneChangeCUDA<<<1, NUM_THREADS>>>(carsDevice, carIdxDevice, countLaneChangeDevice);
         // }
         tryLaneChangeCUDA<<<1, NUM_THREADS>>>(carsDevice, countLaneChangeDevice) /*Approach 2: Thread outer loop*/;
+        // tryLaneChangeCUDA<<<16, NUM_THREADS>>>(carsDevice, countLaneChangeDevice) /*Approach 2: Thread outer loop*/;
         // checkError(cudaMemcpy(carsTempDevice, carsDevice, NUM_CARS*sizeof(*carsTempDevice), cudaMemcpyDeviceToDevice));
         // tryLaneChangeWithCarsTempCUDA<<<1, NUM_THREADS>>>(carsDevice, carsTempDevice, countLaneChangeDevice);
         // std::swap(carsDevice, carsTempDevice);
