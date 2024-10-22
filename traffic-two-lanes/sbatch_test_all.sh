@@ -6,14 +6,17 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
 #SBATCH --gpus=1
-#SBATCH --time=0-00:05 # time (D-HH:MM)
-#SBATCH --output=SimulateTrafficTwoLanes_GPU.stdout
-# #SBATCH --error=SimulateTrafficTwoLanes_GPU.stderr # enable this when debugging
+#SBATCH --time=0-00:10 # time (D-HH:MM)
+#SBATCH --output=SimulateTrafficTwoLanes.stdout
+# #SBATCH --error=SimulateTrafficTwoLanes.stderr # enable this when debugging
 
 set -o errexit
 
 make clean
 make all
+
+echo "Running CPU code >>>"
+./SimulateTrafficTwoLanes TrafficTwoLanes.csv # filename arg won't work when profiling (if printSteps are commented out)
 
 echo "Running GPU code with thrust >>>"
 ./SimulateTrafficTwoLanes_thrust TrafficTwoLanes_thrust.csv # filename arg won't work when profiling (if printSteps are commented out)

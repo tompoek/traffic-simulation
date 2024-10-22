@@ -14,6 +14,7 @@ set -o errexit
 make clean
 make all
 
+echo "Running CPU code >>>"
 ./SimulateTrafficTwoLanes TrafficTwoLanes.csv # filename arg won't work when profiling (if printSteps are commented out)
 # srun --partition=cosc3500 --account=cosc3500 ./SimulateTrafficTwoLanes TrafficTwoLanes.csv
 # valgrind --tool=cachegrind ./SimulateTrafficTwoLanes 
