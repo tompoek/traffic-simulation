@@ -169,7 +169,7 @@ void resolveCollisionsPerLaneCUDA(Car* cars) {
             leaderCarIdx = followerCarIdx;
             followerCarIdx = cars[leaderCarIdx].followerCarIdx;
         }
-    } else {/*DEBUG*/printf("ERROR: No leader car found @Lane%d\n", laneIdx);
+    // } else {/*DEBUG*/printf("ERROR: No leader car found @Lane%d\n", laneIdx);
     }
 }
 
