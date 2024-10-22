@@ -6,7 +6,8 @@ NVCC = nvcc
 # Compiler flags
 CXXFLAGS = -Wall -pg -O2
 # CXXFLAGS = -Wall -pg -O2 -fopenmp
-NVFLAGS = -g --gpu-architecture=sm_35 -Wno-deprecated-gpu-targets -lineinfo -O2 -ccbin gcc-10 -std=c++11 -lstdc++ # thrust library only compatible with -ccbin gcc-10 -std=c++11 -lstdc++
+# NVFLAGS = -g --gpu-architecture=sm_35 -Wno-deprecated-gpu-targets -lineinfo -O2 # thrust lib supported by gcc-10 and older
+NVFLAGS = -g --gpu-architecture=sm_35 -Wno-deprecated-gpu-targets -lineinfo -O2 -ccbin gcc-10 -std=c++11 -lstdc++ # if using gcc-11 or newer, specify gcc-10
 
 # Source files
 SRCS = SimulateTrafficTwoLanes.cpp utils.cpp
