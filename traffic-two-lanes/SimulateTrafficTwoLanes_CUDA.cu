@@ -110,7 +110,7 @@ void tryLaneChangeCUDA(Car* cars, int* countLaneChange) {
         for (int carIdx2 = 0; carIdx2 < NUM_CARS; carIdx2++) {
             safeToMoveHere[carIdx2] = int(weAreAtTheSameLane[carIdx2] || (distanceToMe[carIdx2]!=0));
         }
-        int safeToChangeLane = 1; //TODO: optimize reduction
+        int safeToChangeLane = 1; // reduction could be optimized if we thread inner loop, but threading inner loop requires frequent memcpy making it slower
         for (int carIdx2 = 0; carIdx2 < NUM_CARS; carIdx2++) {
             safeToChangeLane *= safeToMoveHere[carIdx2];
         }
@@ -144,7 +144,7 @@ void tryLaneChangeCUDA(Car* cars, int* countLaneChange) {
 }
 
 __global__
-void resolveCollisionsThreadLanesCUDA(Car* cars) {
+void resolveCollisionsPerLaneCUDA(Car* cars) {
     int laneIdx = threadIdx.x;
     // find the first leader car index
     int leaderCarIdx = -1;
@@ -230,8 +230,7 @@ int main(int argc, char** argv) {
         
         // ALL CARS DRIVE FORWARD
         start_clock = std::chrono::high_resolution_clock::now();
-        resolveCollisionsThreadLanesCUDA<<<1, 2>>>(carsDevice);
-        //TODO idea: resolveCollisionsTwoBlocksCUDA<<<2, NUM_THREADS>>>(carsDevice);
+        resolveCollisionsPerLaneCUDA<<<1, 2>>>(carsDevice);
         updateActualPositionCUDA<<<1, NUM_THREADS>>>(carsDevice);
         microsecs_allCarsDriveForward += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start_clock);
 
