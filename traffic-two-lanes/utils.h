@@ -1,7 +1,6 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-const int NUM_LANES = 2;
 const int RANDOM_SEED = 47;
 const int NUM_CARS = 250;
 const int LANE_LENGTH = 1.5 * NUM_CARS;

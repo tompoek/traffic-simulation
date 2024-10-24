@@ -133,8 +133,10 @@ int main(int argc, char** argv) {
     thrust::device_vector<Car> carsDevice(NUM_CARS);
     // Measure runtime
     std::chrono::high_resolution_clock::time_point start_clock; // used by all timers
-    auto microsecs_allCarsTryLaneChange = std::chrono::microseconds::zero();
-    auto microsecs_allCarsDriveForward = std::chrono::microseconds::zero();
+    auto microsecs_determineTargetPosition = std::chrono::microseconds::zero();
+    auto microsecs_tryLaneChange = std::chrono::microseconds::zero();
+    auto microsecs_resolveCollisionsPerLane = std::chrono::microseconds::zero();
+    auto microsecs_updateActualPosition = std::chrono::microseconds::zero();
 
     // Prepare for printing to file
     FILE* fid = argc > 1 ? fopen(argv[1], "w") : stdout; // comment out when profiling
@@ -155,26 +157,33 @@ int main(int argc, char** argv) {
         // ALL CARS TRY LANE CHANGE
         start_clock = std::chrono::high_resolution_clock::now();
         thrust::for_each(carsDevice.begin(), carsDevice.end(), DetermineTargetPosition());
-        tryLaneChangeCUDA<<<1, NUM_THREADS>>>(thrust::raw_pointer_cast(carsDevice.data()), thrust::raw_pointer_cast(countLaneChangeDevice.data()));
-        microsecs_allCarsTryLaneChange += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start_clock);
+        microsecs_determineTargetPosition += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start_clock);
+        start_clock = std::chrono::high_resolution_clock::now();
+        tryLaneChangeCUDA<<<1, 1>>>(thrust::raw_pointer_cast(carsDevice.data()), thrust::raw_pointer_cast(countLaneChangeDevice.data())) /*No threading*/;
+        microsecs_tryLaneChange += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start_clock);
 
         // ALL CARS DRIVE FORWARD
         start_clock = std::chrono::high_resolution_clock::now();
         resolveCollisionsPerLaneCUDA<<<1, 2>>>(thrust::raw_pointer_cast(carsDevice.data()));
+        microsecs_resolveCollisionsPerLane += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start_clock);
+        start_clock = std::chrono::high_resolution_clock::now();
         thrust::for_each(carsDevice.begin(), carsDevice.end(), UpdateActualPosition());
-        microsecs_allCarsDriveForward += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start_clock);
+        microsecs_updateActualPosition += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start_clock);
 
         carsHost = carsDevice; // comment out when profiling
         printStepThrustHost(fid, carsHost); // comment out when profiling
     }
     thrust::copy(countLaneChangeDevice.begin(), countLaneChangeDevice.end(), &COUNT_LANE_CHANGE);
-    printf("Num Steps: %d, Num Lanes: %d, Num Cars: %d\n", NUM_STEPS, NUM_LANES, NUM_CARS);
-    printf("Num of successful lane changes = %d\n", COUNT_LANE_CHANGE);
-    printf("Cumulative microseconds of allCarsTryLaneChange = %ld us\n", microsecs_allCarsTryLaneChange.count());
-    printf("Cumulative microseconds of allCarsDriveForward = %ld us\n", microsecs_allCarsDriveForward.count());
+    printf("#Steps: %d, #Lanes: %d, #Cars: %d, #LaneChanges: %d\n", NUM_STEPS, 2, NUM_CARS, COUNT_LANE_CHANGE);
+    printf("Total runtime of  determineTargetPosition = %ld us\n", microsecs_determineTargetPosition.count());
+    printf("Total runtime of            tryLaneChange = %ld us\n", microsecs_tryLaneChange.count());
+    printf("Total runtime of resolveCollisionsPerLane = %ld us\n", microsecs_resolveCollisionsPerLane.count());
+    printf("Total runtime of     updateActualPosition = %ld us\n", microsecs_updateActualPosition.count());
+    printf("Total runtime of                ALL TASKS = %ld us\n",
+            microsecs_determineTargetPosition.count() + microsecs_tryLaneChange.count() +
+            microsecs_resolveCollisionsPerLane.count() + microsecs_updateActualPosition.count());
 
     free(cars);
-
 
     return 0;
 }

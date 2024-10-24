@@ -10,8 +10,10 @@
 int main(int argc, char** argv) {
     // Measure runtime
     std::chrono::high_resolution_clock::time_point start_clock; // used by all timers
-    auto microsecs_allCarsTryLaneChange = std::chrono::microseconds::zero();
-    auto microsecs_allCarsDriveForward = std::chrono::microseconds::zero();
+    auto microsecs_determineTargetPosition = std::chrono::microseconds::zero();
+    auto microsecs_tryLaneChange = std::chrono::microseconds::zero();
+    auto microsecs_resolveCollisionsPerLane = std::chrono::microseconds::zero();
+    auto microsecs_updateActualPosition = std::chrono::microseconds::zero();
 
     // Prepare for printing to file
     FILE* fid = argc > 1 ? fopen(argv[1], "w") : stdout; // comment out when profiling
@@ -32,6 +34,9 @@ int main(int argc, char** argv) {
         for (int carIdx = 0; carIdx < NUM_CARS; carIdx++) {
             cars[carIdx].TargetPosition = cars[carIdx].Position + cars[carIdx].TargetSpeed;
         }
+        microsecs_determineTargetPosition += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start_clock);
+        start_clock = std::chrono::high_resolution_clock::now();
+        // try lane change
         for (int carIdx = 0; carIdx < NUM_CARS; carIdx++) {
             // see if my front is safe
             int iAmTheFirstLeader;
@@ -75,11 +80,10 @@ int main(int argc, char** argv) {
                 cars[carIdx].leaderCarIdx = closestLeaderIdx;
                 if (closestLeaderIdx != -1) { cars[closestLeaderIdx].followerCarIdx = /*i become the closest leader car's follower.*/ carIdx; }
                 if (closestFollowerIdx != -1) { cars[closestFollowerIdx].leaderCarIdx = /*i become the closest follower car's leader.*/ carIdx; }
-
                 COUNT_LANE_CHANGE++; // for debug
             }
         }
-        microsecs_allCarsTryLaneChange += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start_clock);
+        microsecs_tryLaneChange += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start_clock);
 
         // ALL CARS DRIVE FORWARD
         start_clock = std::chrono::high_resolution_clock::now();
@@ -109,25 +113,27 @@ int main(int argc, char** argv) {
                 return -1;
             }
         }
-
+        microsecs_resolveCollisionsPerLane += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start_clock);
+        start_clock = std::chrono::high_resolution_clock::now();
         // update actual position
         for (int carIdx = 0; carIdx < NUM_CARS; carIdx++) {
             cars[carIdx].Position = cars[carIdx].TargetPosition;
             // cars[carIdx].TargetSpeed = /*randomly change target speed to increase traffic dynamics.*/ (rand()%SPEED_LIMIT) + 1;
         }
-        microsecs_allCarsDriveForward += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start_clock);
-
+        microsecs_updateActualPosition += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start_clock);
 
         printStep(fid); // comment out when profiling
     }
-    printf("Num Steps: %d, Num Lanes: %d, Num Cars: %d\n", NUM_STEPS, NUM_LANES, NUM_CARS);
-    printf("Num of successful lane changes = %d\n", COUNT_LANE_CHANGE);
-    printf("Cumulative microseconds of allCarsTryLaneChange = %ld us\n", microsecs_allCarsTryLaneChange.count());
-    printf("Cumulative microseconds of allCarsDriveForward = %ld us\n", microsecs_allCarsDriveForward.count());
-
+    printf("#Steps: %d, #Lanes: %d, #Cars: %d, #LaneChanges: %d\n", NUM_STEPS, 2, NUM_CARS, COUNT_LANE_CHANGE);
+    printf("Total runtime of  determineTargetPosition = %ld us\n", microsecs_determineTargetPosition.count());
+    printf("Total runtime of            tryLaneChange = %ld us\n", microsecs_tryLaneChange.count());
+    printf("Total runtime of resolveCollisionsPerLane = %ld us\n", microsecs_resolveCollisionsPerLane.count());
+    printf("Total runtime of     updateActualPosition = %ld us\n", microsecs_updateActualPosition.count());
+    printf("Total runtime of                ALL TASKS = %ld us\n",
+            microsecs_determineTargetPosition.count() + microsecs_tryLaneChange.count() +
+            microsecs_resolveCollisionsPerLane.count() + microsecs_updateActualPosition.count());
 
     free(cars);
-    
 
     return 0;
 }

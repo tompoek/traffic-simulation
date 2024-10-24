@@ -191,8 +191,10 @@ void updateActualPositionCUDA(Car* cars) {
 int main(int argc, char** argv) {
     // Measure runtime
     std::chrono::high_resolution_clock::time_point start_clock; // used by all timers
-    auto microsecs_allCarsTryLaneChange = std::chrono::microseconds::zero();
-    auto microsecs_allCarsDriveForward = std::chrono::microseconds::zero();
+    auto microsecs_determineTargetPosition = std::chrono::microseconds::zero();
+    auto microsecs_tryLaneChange = std::chrono::microseconds::zero();
+    auto microsecs_resolveCollisionsPerLane = std::chrono::microseconds::zero();
+    auto microsecs_updateActualPosition = std::chrono::microseconds::zero();
 
     // Prepare for printing to file
     FILE* fid = argc > 1 ? fopen(argv[1], "w") : stdout; // comment out when profiling
@@ -220,36 +222,43 @@ int main(int argc, char** argv) {
         // ALL CARS TRY LANE CHANGE
         start_clock = std::chrono::high_resolution_clock::now();
         determineTargetPositionCUDA<<<1, NUM_THREADS>>>(carsDevice);
-        tryLaneChangeCUDA<<<1/*single-block*/, NUM_THREADS>>>(carsDevice, countLaneChangeDevice) /*Thread outer loop*/;
+        microsecs_determineTargetPosition += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start_clock);
+        start_clock = std::chrono::high_resolution_clock::now();
+        tryLaneChangeCUDA<<<1, 1>>>(carsDevice, countLaneChangeDevice) /*No threading*/;
+        // tryLaneChangeCUDA<<<1/*single-block*/, NUM_THREADS>>>(carsDevice, countLaneChangeDevice) /*Thread outer loop*/;
         // tryLaneChangeCUDA<<<NUM_BLOCKS/*multi-blocks*/, NUM_THREADS>>>(carsDevice, countLaneChangeDevice) /*Thread outer loop*/;
         // for (int carIdx = 0; carIdx < NUM_CARS; carIdx++) /*Alternative: Thread inner loop*/ {
         //     checkError(cudaMemcpy(carIdxDevice, &carIdx, sizeof(*carIdxDevice), cudaMemcpyHostToDevice));
         //     eachCarTryLaneChangeCUDA<<<1, NUM_THREADS>>>(carsDevice, carIdxDevice, countLaneChangeDevice);
         // }
-        microsecs_allCarsTryLaneChange += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start_clock);
-        
+        microsecs_tryLaneChange += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start_clock);
+
         // ALL CARS DRIVE FORWARD
         start_clock = std::chrono::high_resolution_clock::now();
         resolveCollisionsPerLaneCUDA<<<1, 2>>>(carsDevice);
+        microsecs_resolveCollisionsPerLane += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start_clock);
+        start_clock = std::chrono::high_resolution_clock::now();
         updateActualPositionCUDA<<<1, NUM_THREADS>>>(carsDevice);
-        microsecs_allCarsDriveForward += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start_clock);
+        microsecs_updateActualPosition += std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start_clock);
 
-        
         checkError(cudaMemcpy(cars, carsDevice, NUM_CARS*sizeof(*carsDevice), cudaMemcpyDeviceToHost));
         printStep(fid);
     }
     checkError(cudaMemcpy(&COUNT_LANE_CHANGE, countLaneChangeDevice, sizeof(*countLaneChangeDevice), cudaMemcpyDeviceToHost));
-    printf("Num Steps: %d, Num Lanes: %d, Num Cars: %d\n", NUM_STEPS, NUM_LANES, NUM_CARS);
-    printf("Num of successful lane changes = %d\n", COUNT_LANE_CHANGE);
-    printf("Cumulative microseconds of allCarsTryLaneChange = %ld us\n", microsecs_allCarsTryLaneChange.count());
-    printf("Cumulative microseconds of allCarsDriveForward = %ld us\n", microsecs_allCarsDriveForward.count());
+    printf("#Steps: %d, #Lanes: %d, #Cars: %d, #LaneChanges: %d\n", NUM_STEPS, 2, NUM_CARS, COUNT_LANE_CHANGE);
+    printf("Total runtime of  determineTargetPosition = %ld us\n", microsecs_determineTargetPosition.count());
+    printf("Total runtime of            tryLaneChange = %ld us\n", microsecs_tryLaneChange.count());
+    printf("Total runtime of resolveCollisionsPerLane = %ld us\n", microsecs_resolveCollisionsPerLane.count());
+    printf("Total runtime of     updateActualPosition = %ld us\n", microsecs_updateActualPosition.count());
+    printf("Total runtime of                ALL TASKS = %ld us\n",
+            microsecs_determineTargetPosition.count() + microsecs_tryLaneChange.count() +
+            microsecs_resolveCollisionsPerLane.count() + microsecs_updateActualPosition.count());
 
     checkError(cudaFree(carsDevice));
     checkError(cudaFree(carIdxDevice));
     checkError(cudaFree(countLaneChangeDevice));
 
-    
     free(cars);
-    
+
     return 0;
 }
