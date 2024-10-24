@@ -2,7 +2,7 @@
 #define UTILS_H
 
 const int RANDOM_SEED = 47;
-const int NUM_CARS = 250;
+const int NUM_CARS = 500;
 const int LANE_LENGTH = 1.5 * NUM_CARS;
 const int NUM_THREADS = 4; // must be exponential of 2
 const int NUM_BLOCKS = (NUM_CARS + NUM_THREADS - 1) / NUM_THREADS;
