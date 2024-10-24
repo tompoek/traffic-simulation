@@ -245,7 +245,7 @@ int main(int argc, char** argv) {
         printStep(fid);
     }
     checkError(cudaMemcpy(&COUNT_LANE_CHANGE, countLaneChangeDevice, sizeof(*countLaneChangeDevice), cudaMemcpyDeviceToHost));
-    printf("#Steps: %d, #Lanes: %d, #Cars: %d, #LaneChanges: %d\n", NUM_STEPS, 2, NUM_CARS, COUNT_LANE_CHANGE);
+    printf("#Steps: %d, #Lanes: %d, #Cars: %d, #CarThreads: %d, #LaneChanges: %d\n", NUM_STEPS, 2, NUM_CARS, NUM_THREADS, COUNT_LANE_CHANGE);
     printf("Total runtime of  determineTargetPosition = %ld us\n", microsecs_determineTargetPosition.count());
     printf("Total runtime of            tryLaneChange = %ld us\n", microsecs_tryLaneChange.count());
     printf("Total runtime of resolveCollisionsPerLane = %ld us\n", microsecs_resolveCollisionsPerLane.count());
