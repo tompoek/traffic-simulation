@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=simulate_traffic
-#SBATCH --partition=cosc3500
+#SBATCH --partition=p100
 #SBATCH --account=cosc3500
 #SBATCH --nodes=1 # when doing MPI, distribute to multiple nodes
 #SBATCH --ntasks-per-node=1
