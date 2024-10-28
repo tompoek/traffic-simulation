@@ -36,7 +36,7 @@ PAUSE_TIME = 0.1; % The longer pause, the slower
 
 Profiling: 
 
-* Manual timers by default: Results printed on terminal (for local test) or *.stdout (for sbatch test)
+* Manual timers by default: Results printed on terminal (for local test) or xxx.stdout (for sbatch test)
 
 * Optional: Profile CPU codes using valgrind, copy paste the following line from test.sh to terminal and run it:
 
