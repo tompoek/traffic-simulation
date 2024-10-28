@@ -1,0 +1,32 @@
+rm -f SimulateTrafficTwoLanes.o utils.o SimulateTrafficTwoLanes_CUDA.o SimulateTrafficTwoLanes_thrust.o SimulateTrafficTwoLanes SimulateTrafficTwoLanes_CUDA SimulateTrafficTwoLanes_thrust gmon.out profile.txt
+g++ -Wall -pg -O2 -c SimulateTrafficTwoLanes.cpp -o SimulateTrafficTwoLanes.o
+g++ -Wall -pg -O2 -c utils.cpp -o utils.o
+g++ -Wall -pg -O2 SimulateTrafficTwoLanes.o utils.o -o SimulateTrafficTwoLanes
+nvcc -g --gpu-architecture=sm_35 -Wno-deprecated-gpu-targets -lineinfo -O2  -c SimulateTrafficTwoLanes_CUDA.cu -o SimulateTrafficTwoLanes_CUDA.o
+nvcc -g --gpu-architecture=sm_35 -Wno-deprecated-gpu-targets -lineinfo -O2  SimulateTrafficTwoLanes_CUDA.o utils.o -o SimulateTrafficTwoLanes_CUDA
+nvcc -g --gpu-architecture=sm_35 -Wno-deprecated-gpu-targets -lineinfo -O2  -c SimulateTrafficTwoLanes_thrust.cu -o SimulateTrafficTwoLanes_thrust.o
+nvcc -g --gpu-architecture=sm_35 -Wno-deprecated-gpu-targets -lineinfo -O2  SimulateTrafficTwoLanes_thrust.o utils.o -o SimulateTrafficTwoLanes_thrust
+
+>>> Running CPU code >>>
+#Steps: 100, #Lanes: 2, #Cars: 4000, #LaneChanges: 16229
+Total runtime of  determineTargetPosition = 438 us
+Total runtime of            tryLaneChange = 23597548 us
+Total runtime of resolveCollisionsPerLane = 8958 us
+Total runtime of     updateActualPosition = 241 us
+Total runtime of                ALL TASKS = 23607185 us
+
+>>> Running GPU code with thrust >>>
+#Steps: 100, #Lanes: 2, #Cars: 4000, #CarThreads: 4, #LaneChanges: 16229
+Total runtime of  determineTargetPosition = 1888 us
+Total runtime of            tryLaneChange = 445 us
+Total runtime of resolveCollisionsPerLane = 392 us
+Total runtime of     updateActualPosition = 99747010 us
+Total runtime of                ALL TASKS = 99749735 us
+
+>>> Running GPU code with CUDA manual malloc >>>
+#Steps: 100, #Lanes: 2, #Cars: 4000, #CarThreads: 4, #LaneChanges: 16229
+Total runtime of  determineTargetPosition = 1735 us
+Total runtime of            tryLaneChange = 402 us
+Total runtime of resolveCollisionsPerLane = 359 us
+Total runtime of     updateActualPosition = 336 us
+Total runtime of                ALL TASKS = 2832 us
