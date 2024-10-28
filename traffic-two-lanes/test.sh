@@ -5,7 +5,7 @@ make all
 
 echo -e "\n>>> Running CPU code >>>"
 ./SimulateTrafficTwoLanes TrafficTwoLanes.csv # filename arg won't work when profiling (if printSteps are commented out)
-# valgrind --tool=cachegrind ./SimulateTrafficTwoLanes 
+# valgrind --tool=cachegrind ./SimulateTrafficTwoLanes SimulateTrafficTwoLanes.csv
 # gprof SimulateTrafficTwoLanes gmon.out > profile.txt
 
 echo -e "\n>>> Running GPU code with thrust >>>"
