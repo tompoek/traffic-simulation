@@ -1,6 +1,8 @@
 # Traffic Two Lanes
 
-Simulation of one-way two-lane traffic aiming to parallelize when scaling up traffic size (#cars)
+Simulation of one-way two-lane traffic aiming to parallelize when scaling up traffic size (#cars), watch the video presentation:
+
+https://youtu.be/9eNFwWoCaHM
 
 Compile and run locally:
 
