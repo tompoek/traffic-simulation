@@ -32,13 +32,17 @@ Change parameters in visualization (visualizeTrafficTwoLanes.m):
 PAUSE_TIME = 0.1; % The longer pause, the slower
 ```
 
-Compile and run when profiling / benchmarking performance:
+Profiling: 
 
-> Optional for faster profiling: Disable printSteps / visualizations in the main function (SimulateTrafficTwoLanes.cpp) that have comments below:
+* Manual timers by default: Results printed on terminal (for local test) or *.stdout (for sbatch test)
 
-```
-// comment out when profiling
-```
+* Optional: Profile CPU codes using valgrind, copy paste the following line from test.sh to terminal and run it:
+
+> valgrind --tool=cachegrind ./SimulateTrafficTwoLanes SimulateTrafficTwoLanes.csv
+
+* Optional: Profile GPU codes using CUDA Nsight Compute, copy paste the following line from test.sh to terminal and run it:
+
+> ncu -fo report_CUDA.ncu-rep ./SimulateTrafficTwoLanes_CUDA TrafficTwoLanes_CUDA.csv
 
 ## Motivation of Two-Lanes vs Multi-Lanes implementation:
 
