@@ -26,7 +26,7 @@ const int SPEED_LIMIT = 4;
 const int NUM_STEPS = 100;
 ```
 
-Change parameters in visualization (visualizeTrafficMultiLanes.m):
+Change parameters in visualization (visualizeTrafficTwoLanes.m):
 
 ```
 PAUSE_TIME = 0.1; % The longer pause, the slower
@@ -40,6 +40,12 @@ Compile and run when profiling / benchmarking performance:
 // comment out when profiling
 ```
 
+## Motivation of Two-Lanes vs Multi-Lanes implementation:
+
+* Fair benchmarking <- Equal chances of lane change <- Constant traffic density <- Increase lane length proportionally to increase of #cars
+
+* Model gets simpler instructions, optimized for GPU parallelization.
+
 ## Key differences of Two-Lanes to Multi-Lanes implementation:
 
 * Simplified to two lanes only, making the traffic denser, motivating cars to change lane.
@@ -48,4 +54,4 @@ Compile and run when profiling / benchmarking performance:
 
 * At initialization, cars of smaller indices are placed ahead of those of larger indices (only affects CPU loop sequence).
 
-* Model gets simpler instructions, optimized for GPU parallelization.
+* GPU parallelization implemented.
