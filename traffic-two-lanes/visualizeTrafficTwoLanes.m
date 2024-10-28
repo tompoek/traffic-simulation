@@ -3,10 +3,11 @@ close all
 clear all
 
 data = readmatrix('TrafficTwoLanes.csv');
-[NUM_STEPS, NUM_CARS] = size(data);
-% NUM_CARS = NUM_CARS / 2; % Each car has two values: laneIdx and posIdx
-NUM_CARS = 20; % Too many cars now, only track the first 20
-LANE_LENGTH = 2000; % posIdx = 0:2047
+[NUM_STEPS, NUM_CARS] = size(data); % Extract #cars and #steps from data
+NUM_CARS = NUM_CARS / 2; % Each car has laneIdx and PosIdx in the data
+LANE_LENGTH = 1.5 * NUM_CARS; % posIdx = 0 : LANE_LENGTH-1
+NUM_CARS = 20; % If too many cars, only track the first few
+NUM_STEPS = 100; % If too many steps, only visualize the first few
 NUM_LANES = 2; % laneIdx = 0:1
 
 %% 
@@ -14,8 +15,7 @@ NUM_LANES = 2; % laneIdx = 0:1
 % Plot car positions in lane (posIdx = 0 at the leftmost, 49 at rightmost)
 figure;
 
-CAR_SIZE = 0.6; % Size of cars to plot
-PAUSE_TIME = 0.0005; % The longer pause, the slower
+PAUSE_TIME = 0.1; % The longer pause, the slower
 
 % % Define palette for colors with increasing NUM_CARS
 colors = hsv(NUM_CARS);
@@ -32,8 +32,8 @@ for step = 1:NUM_STEPS % Each step is an image frame.
         carColor = colors(carIdx + 1, :);
         % Show car as right-pointing triangle.
         vertices = [posIdx, NUM_LANES-laneIdx; 
-                    posIdx-20, NUM_LANES-laneIdx-0.05; 
-                    posIdx-20, NUM_LANES-laneIdx+0.05];
+                    posIdx-0.01*LANE_LENGTH, NUM_LANES-laneIdx-0.05; 
+                    posIdx-0.01*LANE_LENGTH, NUM_LANES-laneIdx+0.05];
         fill(vertices(:,1), vertices(:,2), carColor, 'EdgeColor', 'k');
     end
     
