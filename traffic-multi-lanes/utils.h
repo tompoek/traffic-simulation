@@ -4,10 +4,10 @@
 #include <iostream>
 #include <cuda_runtime.h>
 
-const int LANE_LENGTH = 2048;
-const int NUM_LANES = 2;
+const int NUM_LANES = 4;
 constexpr int RANDOM_SEED = 47; // = 0 for fixed scenario
-constexpr int NUM_CARS = (RANDOM_SEED > 0) ? 2000 : (6 * NUM_LANES); // specify #cars to randomly distribute, or use fixed scenario
+constexpr int NUM_CARS = (RANDOM_SEED > 0) ? 1000 : (6 * NUM_LANES); // specify #cars to randomly distribute, or use fixed scenario
+const int LANE_LENGTH = 1000;
 const int NUM_THREADS = 256; // Single-block implementation
 const int SAFE_DISTANCE = 2;
 const int SPEED_LIMIT = 4;

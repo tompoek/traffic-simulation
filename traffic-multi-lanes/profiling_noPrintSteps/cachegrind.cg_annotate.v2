@@ -1,0 +1,100 @@
+--------------------------------------------------------------------------------
+I1 cache:         32768 B, 64 B, 8-way associative
+D1 cache:         49152 B, 64 B, 12-way associative
+LL cache:         25165824 B, 64 B, 12-way associative
+Command:          ./SimulateTraffic_cars
+Data file:        cachegrind.out.8441
+Events recorded:  Ir I1mr ILmr Dr D1mr DLmr Dw D1mw DLmw
+Events shown:     Ir I1mr ILmr Dr D1mr DLmr Dw D1mw DLmw
+Event sort order: Ir I1mr ILmr Dr D1mr DLmr Dw D1mw DLmw
+Thresholds:       0.1 100 100 100 100 100 100 100 100
+Include dirs:     
+User annotated:   
+Auto-annotation:  on
+
+--------------------------------------------------------------------------------
+Ir                 I1mr           ILmr           Dr               D1mr            DLmr           Dw               D1mw           DLmw           
+--------------------------------------------------------------------------------
+3,433,517 (100.0%) 2,345 (100.0%) 2,231 (100.0%) 962,515 (100.0%) 12,661 (100.0%) 7,732 (100.0%) 424,959 (100.0%) 3,353 (100.0%) 2,419 (100.0%)  PROGRAM TOTALS
+
+--------------------------------------------------------------------------------
+Ir               I1mr         ILmr         Dr               D1mr           DLmr           Dw              D1mw           DLmw          file:function
+--------------------------------------------------------------------------------
+975,795 (28.42%)  12 ( 0.51%)  11 ( 0.49%) 163,444 (16.98%) 1,901 (15.01%) 1,635 (21.15%) 52,441 (12.34%)    16 ( 0.48%)   0           ./elf/./elf/dl-lookup.c:_dl_lookup_symbol_x
+564,320 (16.44%)  37 ( 1.58%)  35 ( 1.57%) 188,669 (19.60%) 3,179 (25.11%)   865 (11.19%) 79,349 (18.67%)    20 ( 0.60%)   0           ./elf/./elf/dl-lookup.c:do_lookup_x
+266,616 ( 7.77%)   7 ( 0.30%)   4 ( 0.18%) 102,306 (10.63%)    80 ( 0.63%)     0          11,652 ( 2.74%)    66 ( 1.97%)   0           ./gmon/./gmon/mcount.c:__mcount_internal
+260,030 ( 7.57%)  25 ( 1.07%)  25 ( 1.12%)  64,962 ( 6.75%) 2,859 (22.58%) 2,432 (31.45%) 21,668 ( 5.10%) 1,593 (47.51%) 909 (37.58%)  ./elf/../sysdeps/x86_64/dl-machine.h:_dl_relocate_object
+213,108 ( 6.21%)   2 ( 0.09%)   1 ( 0.04%) 101,480 (10.54%)     0              0          81,184 (19.10%)     4 ( 0.12%)   0           ./gmon/../sysdeps/x86_64/_mcount.S:mcount
+118,105 ( 3.44%)   7 ( 0.30%)   6 ( 0.27%)  39,347 ( 4.09%)   385 ( 3.04%)   232 ( 3.00%) 13,152 ( 3.09%)     8 ( 0.24%)   1 ( 0.04%)  ./elf/./elf/dl-lookup.c:check_match
+108,466 ( 3.16%)  17 ( 0.72%)  17 ( 0.76%)  34,167 ( 3.55%) 2,530 (19.98%) 1,795 (23.22%) 10,287 ( 2.42%)     0            0           ./elf/./elf/do-rel.h:_dl_relocate_object
+100,572 ( 2.93%)  10 ( 0.43%)  10 ( 0.45%)  37,184 ( 3.86%)     0              0           2,488 ( 0.59%)     0            0           ???:allCarsDriveForwardV2(LaneV2*&, int&)
+ 83,944 ( 2.44%)   4 ( 0.17%)   4 ( 0.18%)  23,876 ( 2.48%)     1 ( 0.01%)     0           5,255 ( 1.24%)     0            0           ???:tryLaneChangeV2(LaneV2&, LaneV2&, int&, int&, int&)
+ 80,623 ( 2.35%)  10 ( 0.43%)  10 ( 0.45%)  23,445 ( 2.44%)     0              0           5,902 ( 1.39%)     0            0           ???:allCarsTryLaneChangeV2(LaneV2*&, int&)
+ 73,307 ( 2.14%)  80 ( 3.41%)  61 ( 2.73%)  18,361 ( 1.91%)   200 ( 1.58%)    82 ( 1.06%)      0              0            0           ./string/../sysdeps/x86_64/strcmp.S:strcmp
+ 50,041 ( 1.46%)   3 ( 0.13%)   3 ( 0.13%)       2 ( 0.00%)     1 ( 0.01%)     0          50,024 (11.77%)   782 (23.32%) 781 (32.29%)  ./string/../sysdeps/x86_64/multiarch/memset-vec-unaligned-erms.S:__memset_avx2_unaligned_erms
+ 43,248 ( 1.26%)   9 ( 0.38%)   9 ( 0.40%)  18,427 ( 1.91%)     5 ( 0.04%)     5 ( 0.06%)  4,774 ( 1.12%)     4 ( 0.12%)   4 ( 0.17%)  ???:execLaneChangeV2(LaneV2&, LaneV2&, int&)
+ 41,115 ( 1.20%)   5 ( 0.21%)   5 ( 0.22%)   7,475 ( 0.78%)    94 ( 0.74%)    94 ( 1.22%)      6 ( 0.00%)     1 ( 0.03%)   1 ( 0.04%)  ./elf/./elf/dl-tunables.c:__GI___tunables_init
+ 20,270 ( 0.59%)   8 ( 0.34%)   8 ( 0.36%)   9,360 ( 0.97%)     0              0           1,256 ( 0.30%)     0            0           ???:std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>::_M_gen_rand()
+ 19,645 ( 0.57%)   0            0                0              0              0           4,370 ( 1.03%)     0            0           ./elf/../sysdeps/generic/dl-protected.h:do_lookup_x
+ 14,973 ( 0.44%)   2 ( 0.09%)   2 ( 0.09%)   8,106 ( 0.84%)     0              0           3,123 ( 0.73%)    49 ( 1.46%)   1 ( 0.04%)  ???:std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>::seed(unsigned long)
+ 14,864 ( 0.43%)  15 ( 0.64%)  15 ( 0.67%)   4,252 ( 0.44%)     2 ( 0.02%)     2 ( 0.03%)  1,446 ( 0.34%)     3 ( 0.09%)   3 ( 0.12%)  ./elf/./elf/dl-load.c:open_path
+ 13,706 ( 0.40%)   1 ( 0.04%)   1 ( 0.04%)   3,738 ( 0.39%)     0              0           3,115 ( 0.73%)     0            0           ???:std::__detail::_Mod<unsigned long, 624ul, 1ul, 0ul, true, true>::__calc(unsigned long)
+ 12,128 ( 0.35%)   6 ( 0.26%)   6 ( 0.27%)   3,552 ( 0.37%)     0              0             256 ( 0.06%)     0            0           ???:std::locale::_Impl::_M_install_facet(std::locale::id const*, std::locale::facet const*)
+ 11,996 ( 0.35%)  20 ( 0.85%)  20 ( 0.90%)   4,156 ( 0.43%)    88 ( 0.70%)    83 ( 1.07%)    869 ( 0.20%)    65 ( 1.94%)  64 ( 2.65%)  ./elf/./elf/dl-version.c:_dl_check_map_versions
+ 10,875 ( 0.32%)   1 ( 0.04%)   1 ( 0.04%)   2,175 ( 0.23%)     0              0               0              0            0           ./elf/../sysdeps/generic/ldsodefs.h:do_lookup_x
+ 10,240 ( 0.30%)   4 ( 0.17%)   4 ( 0.18%)   3,072 ( 0.32%)     4 ( 0.03%)     0           1,536 ( 0.36%)     0            0           ./wcsmbs/./wcsmbs/btowc.c:btowc
+ 10,173 ( 0.30%)   0            0            3,391 ( 0.35%)     0              0               0              0            0           ./elf/../sysdeps/generic/ldsodefs.h:_dl_relocate_object
+  8,636 ( 0.25%)   2 ( 0.09%)   2 ( 0.09%)   2,682 ( 0.28%)     2 ( 0.02%)     2 ( 0.03%)     27 ( 0.01%)     0            0           ./elf/./elf/dl-minimal.c:strsep
+  8,112 ( 0.24%)   1 ( 0.04%)   1 ( 0.04%)   3,744 ( 0.39%)     0              0           2,496 ( 0.59%)     0            0           ???:std::__detail::_Mod<unsigned long, 4294967296ul, 1ul, 0ul, true, true>::__calc(unsigned long)
+  7,488 ( 0.22%)   1 ( 0.04%)   1 ( 0.04%)   2,496 ( 0.26%)     0              0           3,120 ( 0.73%)     0            0           ???:unsigned long std::__detail::__mod<unsigned long, 4294967296ul, 1ul, 0ul>(unsigned long)
+  7,476 ( 0.22%)   1 ( 0.04%)   1 ( 0.04%)   2,492 ( 0.26%)     0              0           3,115 ( 0.73%)     0            0           ???:unsigned long std::__detail::__mod<unsigned long, 624ul, 1ul, 0ul>(unsigned long)
+  7,332 ( 0.21%)   7 ( 0.30%)   7 ( 0.31%)   2,652 ( 0.28%)   246 ( 1.94%)    49 ( 0.63%)    702 ( 0.17%)     3 ( 0.09%)   0           ./elf/./elf/dl-runtime.c:_dl_fixup
+  7,236 ( 0.21%)   1 ( 0.04%)   1 ( 0.04%)   3,216 ( 0.33%)     0              0           2,412 ( 0.57%)     0            0           ???:__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >::base() const
+  6,921 ( 0.20%)  21 ( 0.90%)  21 ( 0.94%)   1,694 ( 0.18%)    14 ( 0.11%)    14 ( 0.18%)  1,332 ( 0.31%)     3 ( 0.09%)   3 ( 0.12%)  ./elf/./elf/dl-load.c:open_verify.constprop.0
+  6,873 ( 0.20%)  19 ( 0.81%)  19 ( 0.85%)   2,223 ( 0.23%)     1 ( 0.01%)     0             475 ( 0.11%)    14 ( 0.42%)  12 ( 0.50%)  ???:initializeTrafficV2(LaneV2*&)
+  6,567 ( 0.19%)   2 ( 0.09%)   2 ( 0.09%)   2,587 ( 0.27%)     0              0           2,189 ( 0.52%)     0            0           ???:std::enable_if<std::__and_<std::__not_<std::__is_tuple_like<int> >, std::is_move_constructible<int>, std::is_move_assignable<int> >::value, void>::type std::swap<int>(int&, int&)
+  6,321 ( 0.18%)   1 ( 0.04%)   1 ( 0.04%)   2,408 ( 0.25%)     0              0           2,107 ( 0.50%)     0            0           ???:bool __gnu_cxx::operator!=<int*, std::vector<int, std::allocator<int> > >(__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > > const&, __gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > > const&)
+  5,980 ( 0.17%)   2 ( 0.09%)   2 ( 0.09%)   2,990 ( 0.31%)     0              0           1,794 ( 0.42%)     0            0           ???:__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >::operator*() const
+  5,642 ( 0.16%)   1 ( 0.04%)   1 ( 0.04%)   2,418 ( 0.25%)     0              0           2,015 ( 0.47%)     0            0           ???:__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >::__normal_iterator(int* const&)
+  5,455 ( 0.16%)  11 ( 0.47%)   7 ( 0.31%)   1,582 ( 0.16%)     3 ( 0.02%)     2 ( 0.03%)  1,090 ( 0.26%)    57 ( 1.70%)  57 ( 2.36%)  ./string/../sysdeps/x86_64/multiarch/memmove-vec-unaligned-erms.S:memcpy
+  5,400 ( 0.16%)   3 ( 0.13%)   3 ( 0.13%)   1,600 ( 0.17%)     0              0           1,800 ( 0.42%)     0            0           ???:unsigned long std::uniform_int_distribution<unsigned long>::operator()<std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul> >(std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>&, std::uniform_int_distribution<unsigned long>::param_type const&)
+  5,400 ( 0.16%)   1 ( 0.04%)   1 ( 0.04%)   2,000 ( 0.21%)     0              0           1,400 ( 0.33%)     0            0           ???:__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >::operator+(long) const
+  5,373 ( 0.16%)   1 ( 0.04%)   1 ( 0.04%)   1,990 ( 0.21%)     0              0           1,592 ( 0.37%)     0            0           ???:__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >::operator++(int)
+  5,373 ( 0.16%)   0            0            2,388 ( 0.25%)     0              0           1,791 ( 0.42%)     0            0           ???:std::remove_reference<int&>::type&& std::move<int&>(int&)
+  5,318 ( 0.15%)   1 ( 0.04%)   1 ( 0.04%)   1,026 ( 0.11%)     1 ( 0.01%)     1 ( 0.01%)      0              0            0           ./elf/./elf/dl-tunables.h:__GI___tunables_init
+  5,128 ( 0.15%)   8 ( 0.34%)   8 ( 0.36%)     506 ( 0.05%)     0              0           1,207 ( 0.28%)     0            0           ???:void std::shuffle<__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >, std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>&>(__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >, __gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >, std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>&)
+  4,378 ( 0.13%)   1 ( 0.04%)   1 ( 0.04%)     796 ( 0.08%)     0              0           1,592 ( 0.37%)     0            0           ???:void std::iter_swap<__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >, __gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > > >(__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >, __gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >)
+  4,257 ( 0.12%)   2 ( 0.09%)   2 ( 0.09%)   1,287 ( 0.13%)     0              0           1,188 ( 0.28%)     0            0           ???:std::pair<unsigned long, unsigned long> std::__gen_two_uniform_ints<unsigned long, std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>&>(unsigned long, unsigned long, std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>&)
+  4,174 ( 0.12%)  16 ( 0.68%)  16 ( 0.72%)     331 ( 0.03%)    43 ( 0.34%)     0             143 ( 0.03%)     0            0           ./elf/./elf/dl-reloc.c:_dl_relocate_object
+  4,141 ( 0.12%)   5 ( 0.21%)   5 ( 0.22%)     190 ( 0.02%)     0              0             375 ( 0.09%)     2 ( 0.06%)   2 ( 0.08%)  ./io/../sysdeps/unix/sysv/linux/open64_nocancel.c:__open_nocancel
+  4,055 ( 0.12%) 249 (10.62%) 235 (10.53%)   1,815 ( 0.19%)   141 ( 1.11%)    10 ( 0.13%)    415 ( 0.10%)    21 ( 0.63%)  13 ( 0.54%)  ???:???
+  3,959 ( 0.12%)  16 ( 0.68%)  16 ( 0.72%)     574 ( 0.06%)     2 ( 0.02%)     2 ( 0.03%)     54 ( 0.01%)     5 ( 0.15%)   5 ( 0.21%)  ./elf/./elf/dl-load.c:_dl_init_paths
+  3,782 ( 0.11%)  41 ( 1.75%)  41 ( 1.84%)     825 ( 0.09%)    54 ( 0.43%)    54 ( 0.70%)    394 ( 0.09%)    22 ( 0.66%)  22 ( 0.91%)  ./elf/./elf/dl-load.c:_dl_map_object_from_fd
+  3,603 ( 0.10%)   2 ( 0.09%)   2 ( 0.09%)   1,901 ( 0.20%)     0              0             501 ( 0.12%)     0            0           ???:std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>::operator()()
+  3,564 ( 0.10%)   1 ( 0.04%)   1 ( 0.04%)   1,584 ( 0.16%)     0              0           1,188 ( 0.28%)     0            0           ???:unsigned long&& std::forward<unsigned long>(std::remove_reference<unsigned long>::type&)
+  3,456 ( 0.10%)   3 ( 0.13%)   3 ( 0.13%)     896 ( 0.09%)     0              0             512 ( 0.12%)     0            0           ./wcsmbs/./wcsmbs/wctob.c:wctob
+
+--------------------------------------------------------------------------------
+The following files chosen for auto-annotation could not be found:
+--------------------------------------------------------------------------------
+  ./elf/../sysdeps/generic/dl-protected.h
+  ./elf/../sysdeps/generic/ldsodefs.h
+  ./elf/../sysdeps/x86_64/dl-machine.h
+  ./elf/./elf/dl-load.c
+  ./elf/./elf/dl-lookup.c
+  ./elf/./elf/dl-minimal.c
+  ./elf/./elf/dl-reloc.c
+  ./elf/./elf/dl-runtime.c
+  ./elf/./elf/dl-tunables.c
+  ./elf/./elf/dl-tunables.h
+  ./elf/./elf/dl-version.c
+  ./elf/./elf/do-rel.h
+  ./gmon/../sysdeps/x86_64/_mcount.S
+  ./gmon/./gmon/mcount.c
+  ./io/../sysdeps/unix/sysv/linux/open64_nocancel.c
+  ./string/../sysdeps/x86_64/multiarch/memmove-vec-unaligned-erms.S
+  ./string/../sysdeps/x86_64/multiarch/memset-vec-unaligned-erms.S
+  ./string/../sysdeps/x86_64/strcmp.S
+  ./wcsmbs/./wcsmbs/btowc.c
+  ./wcsmbs/./wcsmbs/wctob.c
+
