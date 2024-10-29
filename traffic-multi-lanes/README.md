@@ -1,6 +1,6 @@
 # Traffic Simulation Multi-Lanes
 
-Simulation of one-way traffic with flexible #lanes aiming to parallelize when scaling up traffic size (both #cars and #lanes), see presentation video:
+Simulation of one-way traffic with flexible #lanes aiming to parallelize when scaling up traffic size (both #cars and #lanes). The project focuses on optimizing computing performance i.e. minimizing runtime, rather than building a complex model with fancy visualization. See presentation video:
 
 https://youtu.be/bqS8Da7sjhc
 

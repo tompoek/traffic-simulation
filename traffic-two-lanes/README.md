@@ -1,6 +1,6 @@
 # Traffic Two Lanes
 
-Simulation of one-way two-lane traffic aiming to parallelize when scaling up traffic size (#cars), watch the video presentation:
+Simulation of one-way two-lane traffic aiming to parallelize when scaling up traffic size (#cars). The project focuses on optimizing computing performance i.e. minimizing runtime / doing as many tasks as possible in parallel, rather than building a complex model with fancy visualization. Watch the video presentation:
 
 https://youtu.be/9eNFwWoCaHM
 
