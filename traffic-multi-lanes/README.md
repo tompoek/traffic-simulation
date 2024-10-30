@@ -1,8 +1,10 @@
 # Traffic Simulation Multi-Lanes
 
-Simulation of one-way traffic with flexible #lanes aiming to parallelize when scaling up traffic size (both #cars and #lanes). The project focuses on optimizing computing performance i.e. minimizing runtime, rather than building a complex model with fancy visualization. See presentation video:
+Simulation of one-way traffic with flexible #lanes aiming to parallelize when scaling up traffic size (both #cars and #lanes). The project focuses on optimizing computing performance i.e. minimizing runtime, rather than building a complex model with fancy visualization. 
 
-https://youtu.be/bqS8Da7sjhc
+Watch the video presentation: https://youtu.be/bqS8Da7sjhc
+
+Or read the slides: https://github.com/tompoek/traffic-simulation/blob/main/traffic-multi-lanes/Traffic-Multi-Lanes-Slides.pdf
 
 Compile and run locally:
 
